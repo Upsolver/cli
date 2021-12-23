@@ -63,7 +63,9 @@ from cli.commands.catalogs import catalogs
 from cli.commands.clusters import clusters
 from cli.commands.context import CliContext
 from cli.commands.execute import execute
+from cli.commands.jobs import jobs
 from cli.commands.shell import shell
+from cli.commands.tables import tables
 from cli.config import CLI_HOME_DIR, Config, LogLvl, Options, OutputFmt, Profile
 from cli.errors import BadArgument, BadConfig, InternalErr
 
@@ -172,3 +174,5 @@ root_command.add_command(execute)
 root_command.add_command(shell)
 root_command.add_command(clusters)
 root_command.add_command(catalogs)
+root_command.add_command(tables)
+root_command.add_command(jobs)

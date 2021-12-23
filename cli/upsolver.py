@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable, NamedTuple, Optional, Sequence
 
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
@@ -8,13 +8,35 @@ from prompt_toolkit.lexers import Lexer
 # TODO abstract class, implementations: actual, mock (tests, mocking lib for python?), local
 
 
+class Cluster(NamedTuple):
+    name: str
+    id: str
+
+
+class Catalog(NamedTuple):
+    name: str
+
+
+class Table(NamedTuple):
+    name: str
+
+
+class TablePartition(NamedTuple):
+    table_name: str
+    name: str
+
+
+class Job(NamedTuple):
+    name: str
+
+
 class UpsolverApi(object):
     # annotation of __init__ return type: https://www.python.org/dev/peps/pep-0484/:
     # (Note that the return type of __init__ ought to be annotated with -> None. The reason for this is
     # subtle. If __init__ assumed a return annotation of -> None, would that mean that an argument-less,
     # un-annotated __init__ method should still be type-checked? Rather than leaving this ambiguous or
     # introducing an exception to the exception, we simply say that __init__ ought to have a return
-    # annotation; the default behavior is thus the same as for other methods.)
+    # annotation; t~he default behavior is thus the same as for other methods.)
     def __init__(self) -> None:
         pass
 
@@ -51,6 +73,51 @@ class UpsolverApi(object):
     #      "get next" identifier)?
     def execute(self, expression: str) -> str:
         return '<no result>'
+
+    def get_clusters(self) -> Sequence[Cluster]:
+        return [Cluster(name='stamcluster', id='stamid')]
+
+    def export_cluster(self, cluster: str) -> str:
+        return f'CREATE CLUSTER {cluster}'
+
+    def stop_cluster(self, cluster: str) -> Optional[str]:
+        """
+        :return: A string detailing an error, or None if there were no errors
+        """
+        return None
+
+    def run_cluster(self, cluster: str) -> Optional[str]:
+        """
+        :return: A string detailing an error, or None if there were no errors
+        """
+        return None
+
+    def delete_cluster(self, cluster: str) -> Optional[str]:
+        """
+        :return: A string detailing an error, or None if there were no errors
+        """
+        return None
+
+    def get_catalogs(self) -> Sequence[Catalog]:
+        return [Catalog(name='stamcatalog')]
+
+    def export_catalog(self, catalog: str) -> str:
+        return f'CREATE CONNECTION {catalog}'
+
+    def get_tables(self) -> Sequence[Table]:
+        return [Table(name='stamtable')]
+
+    def export_table(self, table: str) -> str:
+        return f'CREATE TABLE {table}'
+
+    def get_table_partitions(self, table: str) -> Sequence[TablePartition]:
+        return [TablePartition(table_name=table, name='stampartition')]
+
+    def get_jobs(self) -> Sequence[Job]:
+        return [Job(name='stamjob')]
+
+    def export_job(self, job: str) -> str:
+        return f'CREATE JOB {job}'
 
 
 class UpsolverApiCompleter(Completer):

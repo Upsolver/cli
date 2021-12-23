@@ -8,7 +8,6 @@ CTRL+D
 - config location
   default: ~/.upsql/
 '''
-
 from cli.commands.root import root_command
 
 if __name__ == '__main__':

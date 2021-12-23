@@ -3,8 +3,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 from typing import Callable
 
-import coloredlogs
-
 from cli.config import Config, LogLvl, Profile, ProfileAuthSettings
 from cli.errors import InternalErr
 from cli.upsolver import UpsolverApi
@@ -24,8 +22,6 @@ class CliContext(object):
         self.log = logging.getLogger('CLI')
 
         lvl = (LogLvl.DEBUG if conf.debug else conf.options.log_level).to_logging()
-        coloredlogs.install(level=lvl)
-
         formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s')
 
         # always write to file

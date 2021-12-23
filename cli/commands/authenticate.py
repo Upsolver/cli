@@ -3,7 +3,7 @@ import click
 from cli.commands.context import CliContext
 
 
-@click.command()
+@click.command(help='Perform Authentication and save auth token in config file')
 @click.pass_context
 @click.option('-t', '--token', required=True, help='Authentication token')
 def authenticate(ctx: click.Context, token: str) -> None:
