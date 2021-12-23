@@ -1,15 +1,18 @@
 import configparser
 import logging
+from logging.handlers import RotatingFileHandler
+from typing import Callable
 
 import coloredlogs
 
-from cli.config import Config, Profile
+from cli.config import Config, LogLvl, Profile, ProfileAuthSettings
 from cli.errors import InternalErr
 from cli.upsolver import UpsolverApi
 
 
 class CliContext(object):
     conf: Config
+    log: logging.Logger
 
     """
     This is used as the value for click.Context object that is passed to subcommands.
@@ -17,30 +20,31 @@ class CliContext(object):
     CliContext holds "global" information (e.g. configuration) and is capable of spawning
     entities that depend on this configuration (e.g. loggers).
     """
-    @staticmethod
-    def _setup_logging(conf: Config) -> None:
-        lvl = conf.options.log_level.to_logging()
+    def _setup_logging(self, conf: Config) -> None:
+        self.log = logging.getLogger('CLI')
+
+        lvl = (LogLvl.DEBUG if conf.debug else conf.options.log_level).to_logging()
         coloredlogs.install(level=lvl)
 
+        formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s')
+
         # always write to file
-        handlers: list[logging.Handler] = [logging.FileHandler(conf.options.log_file)]
+        handlers: list[logging.Handler] = [RotatingFileHandler(
+            filename=conf.options.log_file,
+            maxBytes=10 * (2 ** 20),
+        )]
         # if debug mode, also write to stderr
         if conf.debug:
             handlers.append(logging.StreamHandler())
 
-        logging.basicConfig(
-            level=lvl,
-            handlers=handlers
-        )
+        for h in handlers:
+            h.setLevel(lvl)
+            h.setFormatter(formatter)
+            self.log.addHandler(h)
 
     def __init__(self, conf: Config):
         self.conf = conf
         self._setup_logging(conf)
-
-    def logger(self, name: str) -> logging.Logger:
-        # TODO if conf has a file configured, use that to write to file
-        #  also: if debug flag is set, output to stdout
-        return logging.getLogger(name)
 
     def update_profile_conf(self, new_profile: Profile) -> None:
         confparser = configparser.ConfigParser()
@@ -72,3 +76,16 @@ class CliContext(object):
         #      - env vars (overrides)
         #      - explicit values passed from cli invocation
         return UpsolverApi()
+
+    def authenticator(self) -> Callable[[str], ProfileAuthSettings]:
+        """
+        Authenticator is separate from UpsolverApi because authentication calls are made
+        to a (potentially?) different endpoints - so stricly speaking, auth endpoint isn't
+        part of the (user) upsolver API
+        :return:
+        """
+        def dummy_auth(token: str) -> ProfileAuthSettings:
+            self.log.debug(f'authenticating token: {token} ...')
+            return ProfileAuthSettings(token=token, base_url='stam://upsolver.com')
+
+        return dummy_auth

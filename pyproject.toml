@@ -10,7 +10,6 @@ python = "^3.10"
 prompt-toolkit = "^3.0.24"
 Pygments = "^2.10.0"
 click = "^8.0.3"
-coloredlogs = "^15.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

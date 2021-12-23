@@ -6,7 +6,6 @@ from prompt_toolkit.formatted_text import StyleAndTextTuples
 from prompt_toolkit.lexers import Lexer
 
 # TODO abstract class, implementations: actual, mock (tests, mocking lib for python?), local
-from cli.config import ProfileAuthSettings
 
 
 class UpsolverApi(object):
@@ -52,9 +51,6 @@ class UpsolverApi(object):
     #      "get next" identifier)?
     def execute(self, expression: str) -> str:
         return '<no result>'
-
-    def authenticate(self, token: str) -> ProfileAuthSettings:
-        return ProfileAuthSettings(token=token, base_url='stam://upsolver.com')
 
 
 class UpsolverApiCompleter(Completer):
