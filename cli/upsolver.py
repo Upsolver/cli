@@ -129,6 +129,27 @@ class UpsolverApiCompleter(Completer):
         return self.api.get_completions(document)
 
 
+class FooCompleter(Completer):
+    def __init__(self, api: UpsolverApi):
+        self.api = api
+
+    _meta_commands: dict[str, str] = {
+        '!exit': 'Exit from the interactive UpSQL shell',
+        '!quit': 'Quit the interactive UpSQL shell',
+        '!help': 'Show Help',
+    }
+
+    def get_completions(self, document: Document, complete_event: CompleteEvent) -> Iterable[Completion]:
+        return [
+            Completion(
+                text=match,
+                display_meta=self._meta_commands[match],
+                start_position=-len(document.text)  # TODO wtf
+            )
+            for match in [k for k in self._meta_commands.keys() if k.startswith(document.text)]
+        ]
+
+
 class UpsolverApiLexer(Lexer):
     def __init__(self, api: UpsolverApi):
         self.api = api

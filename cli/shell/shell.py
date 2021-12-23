@@ -1,3 +1,4 @@
+from click import echo
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import ThreadedCompleter
@@ -11,7 +12,7 @@ from prompt_toolkit.layout.processors import (
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.sql import SqlLexer
 
-from cli.upsolver import UpsolverApi, UpsolverApiCompleter
+from cli.upsolver import FooCompleter, UpsolverApi
 
 
 class UpsolverShell(object):
@@ -19,22 +20,24 @@ class UpsolverShell(object):
     def __init__(self, api: UpsolverApi):
         self.api = api
 
-    def run_cli(self) -> None:
+    def repl(self) -> None:
         session: PromptSession[str] = PromptSession(
             'upsql> ',
             history=None,
             auto_suggest=AutoSuggestFromHistory(),
+            lexer=PygmentsLexer(SqlLexer),
 
             # TODO upsolver lexer causes exception in event loop
             # lexer=UpsolverApiLexer(self.api),  # PygmentsLexer(SqlLexer),  # used for syntax highlighting
 
-            lexer=PygmentsLexer(SqlLexer),
             enable_history_search=False,
+            search_ignore_case=True,
             # TODO not sure ? indicate when up-arrow partial string matching is enabled. It is advised
             #  to not enable this at the same time as complete_while_typing, because when there is
             #  an autocompletion found, the up arrows usually browse through the completions,
             #  rather than through the history.
-            completer=ThreadedCompleter(UpsolverApiCompleter(self.api)),
+            # completer=ThreadedCompleter(UpsolverApiCompleter(self.api)),
+            completer=ThreadedCompleter(FooCompleter(self.api)),
             multiline=False,  # TODO figure out how to get return from prompt() if I set this to True
 
             # TODO (taken from pgcli) haven't tested input_processors
@@ -51,6 +54,10 @@ class UpsolverShell(object):
 
         while True:
             text = session.prompt()
-            print(f'executing command ...{text}')
-            if text == 'quit' or text == 'exit':
+            if text == '!quit' or text == '!exit':
+                echo('Byeeeeeee')
                 return
+            elif text.startswith('!'):
+                echo(f'Unknown command: {text}')
+            else:
+                echo(f'executing command:\n\t{text}\nresult:\n\t{self.api.execute(text)}')

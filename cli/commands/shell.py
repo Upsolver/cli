@@ -8,4 +8,4 @@ from cli.shell.shell import UpsolverShell
 @click.pass_context
 def shell(ctx: click.Context) -> None:
     clictx = ctx.ensure_object(CliContext)
-    UpsolverShell(clictx.upsolver_api()).run_cli()
+    UpsolverShell(clictx.upsolver_api()).repl()
