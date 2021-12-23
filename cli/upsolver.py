@@ -5,8 +5,10 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import StyleAndTextTuples
 from prompt_toolkit.lexers import Lexer
 
-
 # TODO abstract class, implementations: actual, mock (tests, mocking lib for python?), local
+from cli.config import ProfileAuthSettings
+
+
 class UpsolverApi(object):
     # annotation of __init__ return type: https://www.python.org/dev/peps/pep-0484/:
     # (Note that the return type of __init__ ought to be annotated with -> None. The reason for this is
@@ -51,18 +53,8 @@ class UpsolverApi(object):
     def execute(self, expression: str) -> str:
         return '<no result>'
 
-    # def authenticate(self, token: str) -> BaseUrl:
-    #     pass
-
-
-# TODO this is used from both the interactive shell and the execute subcommand...
-#      will also have to build the api for tests, and for local development
-# TODO what configuration is needed
-#      - from ~/.upsql/config?
-#      - env vars (overrides)
-#      - explicit values passed from cli invocation
-def build_upsolver_api() -> UpsolverApi:
-    return UpsolverApi()
+    def authenticate(self, token: str) -> ProfileAuthSettings:
+        return ProfileAuthSettings(token=token, base_url='stam://upsolver.com')
 
 
 class UpsolverApiCompleter(Completer):

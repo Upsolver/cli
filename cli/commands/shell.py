@@ -1,9 +1,11 @@
 import click
 
+from cli.commands.context import CliContext
 from cli.shell.shell import UpsolverShell
-from cli.upsolver import build_upsolver_api
 
 
 @click.command()
-def shell() -> None:
-    UpsolverShell(build_upsolver_api()).run_cli()
+@click.pass_context
+def shell(ctx: click.Context) -> None:
+    clictx = ctx.ensure_object(CliContext)
+    UpsolverShell(clictx.upsolver_api()).run_cli()

@@ -2,7 +2,6 @@ import click
 from click import echo
 
 from cli.commands.context import CliContext
-from cli.upsolver import build_upsolver_api
 
 
 def formatify(input: str, input_fmt: str, desired_fmt: str) -> str:
@@ -22,12 +21,12 @@ def execute(
     output_format: str,
     dry_run: bool,
 ) -> None:
-    echo(ctx.find_object(CliContext).conf.active_profile)
-
+    clictx = ctx.ensure_object(CliContext)
+    echo(ctx.ensure_object(CliContext).conf.active_profile)
     # TODO how to add support for running files
 
     # TODO format should be enum (idiomatic in python?)
-    api = build_upsolver_api()
+    api = clictx.upsolver_api()
     if dry_run:
         check_result = api.check_syntax(expression)
         if len(check_result) > 0:

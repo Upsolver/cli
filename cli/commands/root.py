@@ -104,8 +104,9 @@ def root_command(
             return CLI_HOME_DIR / 'cli.log'
 
     def get_log_lvl(parser: configparser.ConfigParser) -> LogLvl:
-        lvl_str = parser.get('options', 'log_level', fallback=None)
-        if lvl_str is not None:
+        lvl_str: str = \
+            'DEBUG' if debug else parser.get('options', 'log_level', fallback='')
+        if lvl_str != '':
             return LogLvl[lvl_str]
         else:
             return LogLvl.CRITICAL
@@ -146,22 +147,23 @@ def root_command(
         desired_profile_name = profile if profile is not None else 'default'
         active_profile = next(
             (p for p in profiles if p.name == desired_profile_name),
-            Profile(name='default')
+            Profile(name=desired_profile_name)
         )
 
-        if active_profile is None:
-            raise BadArgument(f'Failed to find profile "{desired_profile_name}"')
-
         return Config(
+            conf_path=get_config_path(),
             active_profile=active_profile,
             profiles=profiles,
             options=Options(
                 log_file=get_log_file_path(confparser),
                 log_level=get_log_lvl(confparser)
-            )
+            ),
+            debug=debug
         )
 
-    ctx.obj = CliContext(get_config())
+    ctx.obj = CliContext(
+        conf=get_config(),
+    )
 
 
 # TODO automate this by searching commands package?

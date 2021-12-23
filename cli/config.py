@@ -26,6 +26,23 @@ class Profile(NamedTuple):
     base_url: Optional[str] = None  # authentication request(s) will be issued to this endpoint
     output: OutputFmt = OutputFmt.JSON
 
+    def is_default(self) -> bool:
+        return self.name == 'default'
+
+
+class ProfileAuthSettings(NamedTuple):
+    """
+    Expresses the configuration recieved from authentication endpoint
+    """
+    token: str
+    base_url: str
+
+    def update(self, p: Profile) -> Profile:
+        return p._replace(token=self.token, base_url=self.base_url)
+
+
+# Authenticator = Callable[[str], ProfileAuthConf]  # given a token, returns profile config
+
 
 class LogLvl(Enum):
     DEBUG = 1
@@ -35,15 +52,15 @@ class LogLvl(Enum):
     CRITICAL = 5
 
     def to_logging(self) -> int:
-        if self.value == LogLvl.DEBUG:
+        if self.value == LogLvl.DEBUG.value:
             return logging.DEBUG
-        elif self.value == LogLvl.INFO:
+        elif self.value == LogLvl.INFO.value:
             return logging.INFO
-        elif self.value == LogLvl.WARNING:
+        elif self.value == LogLvl.WARNING.value:
             return logging.WARNING
-        elif self.value == LogLvl.ERROR:
+        elif self.value == LogLvl.ERROR.value:
             return logging.ERROR
-        elif self.value == LogLvl.CRITICAL:
+        elif self.value == LogLvl.CRITICAL.value:
             return logging.CRITICAL
         raise InternalErr(f'cannot convert LogLvl={self.value} to logging (package) level')
 
@@ -54,6 +71,8 @@ class Options(NamedTuple):
 
 
 class Config(NamedTuple):
+    conf_path: Path
     active_profile: Profile
     profiles: list[Profile]
     options: Options
+    debug: bool  # user has used the --debug flag
