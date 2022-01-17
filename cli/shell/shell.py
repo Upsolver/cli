@@ -1,3 +1,5 @@
+import sys
+
 from click import echo
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -12,13 +14,14 @@ from prompt_toolkit.layout.processors import (
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.sql import SqlLexer
 
+from cli.config import Formatter
 from cli.upsolver import FooCompleter, UpsolverApi
 
 
 class UpsolverShell(object):
-    # TODO need to pass the configuration options from ~/.upsql/config here (?)
-    def __init__(self, api: UpsolverApi):
+    def __init__(self, api: UpsolverApi, formatter: Formatter) -> None:
         self.api = api
+        self.formatter = formatter
 
     def repl(self) -> None:
         session: PromptSession[str] = PromptSession(
@@ -54,10 +57,14 @@ class UpsolverShell(object):
 
         while True:
             text = session.prompt()
-            if text == '!quit' or text == '!exit':
+            if text in ['!quit', 'quit', '!exit', 'exit']:
                 echo('Byeeeeeee')
                 return
             elif text.startswith('!'):
                 echo(f'Unknown command: {text}')
             else:
-                echo(f'executing command:\n\t{text}\nresult:\n\t{self.api.execute(text)}')
+                try:
+                    result = self.api.execute(text)
+                    echo(message=self.formatter(result), file=sys.stdout)
+                except Exception as ex:
+                    echo(message=ex, file=sys.stderr)

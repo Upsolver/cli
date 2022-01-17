@@ -6,6 +6,9 @@ from cli.commands.context import CliContext
 
 @click.group()
 def jobs() -> None:
+    """
+    View & manage Jobs
+    """
     pass
 
 

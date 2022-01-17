@@ -6,16 +6,16 @@ from cli.commands.context import CliContext
 
 @click.group()
 def clusters() -> None:
+    """
+    View & manage compute clusters
+    """
     pass
 
 
 @clusters.command(help='List clusters')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    # TODO formatting output... (want to control how clusters (maybe entities of different types
-    #  have different formatting) are listed)
-    #  controlling: how entity is formatted + how list of an entity is formatted
-    echo('\n'.join([c.name for c in ctx.upsolver_api().get_clusters()]))
+    ctx.write(ctx.upsolver_api().get_clusters())
 
 
 @clusters.command(help='Display a live stream of cluster(s) usage statistics')

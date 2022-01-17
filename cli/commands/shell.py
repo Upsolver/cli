@@ -5,7 +5,9 @@ from cli.shell.shell import UpsolverShell
 
 
 @click.command()
-@click.pass_context
-def shell(ctx: click.Context) -> None:
-    clictx = ctx.ensure_object(CliContext)
-    UpsolverShell(clictx.upsolver_api()).repl()
+@click.pass_obj
+def shell(ctx: CliContext) -> None:
+    """
+    An interactive SQL shell
+    """
+    UpsolverShell(ctx.upsolver_api(), ctx.confman.get_formatter()).repl()

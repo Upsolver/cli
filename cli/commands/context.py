@@ -1,34 +1,68 @@
-import configparser
 import logging
+import sys
 from logging.handlers import RotatingFileHandler
-from typing import Callable
+from typing import Any, Optional
 
-from cli.config import Config, LogLvl, Profile, ProfileAuthSettings
-from cli.errors import InternalErr
-from cli.upsolver import UpsolverApi
+from click import echo
+
+from cli.config import Config, ConfMan, LogLvl, get_auth_settings
+from cli.upsolver import UpsolverApi, UpsolverRestApi
+
+# class ICliContext(metaclass=ABCMeta):
+#     confman: IConfMan
+#     log: logging.Logger
+#
+#     @abstractmethod
+#     def upsolver_api(self, auth_base_url: Optional[str] = None) -> UpsolverApi:
+#         pass
+#
+#     @abstractmethod
+#     def write(self, x: Any) -> None:
+#         pass
+#
+#     @abstractmethod
+#     def echo(self, msg: str) -> None:
+#         pass
+#
+#
+# class TestCliContext(ICliContext):
+#     def __init__(self, api: UpsolverApi):
+#         self.api = api
+#         self.confman = TestConfMan()
+#
+#     def upsolver_api(self, auth_base_url: Optional[str] = None) -> UpsolverApi:
+#         pass
+#
+#     def write(self, x: Any) -> None:
+#         pass
+#
+#     def echo(self, msg: str) -> None:
+#         pass
 
 
 class CliContext(object):
-    conf: Config
-    log: logging.Logger
-
     """
     This is used as the value for click.Context object that is passed to subcommands.
 
     CliContext holds "global" information (e.g. configuration) and is capable of spawning
-    entities that depend on this configuration (e.g. loggers).
+    entities that depend on this configuration (e.g. upsolver api).
     """
     def _setup_logging(self, conf: Config) -> None:
         self.log = logging.getLogger('CLI')
 
-        lvl = (LogLvl.DEBUG if conf.debug else conf.options.log_level).to_logging()
+        lvl = (
+            LogLvl.DEBUG if conf.debug
+            else (conf.options.log_level if conf.options is not None else LogLvl.CRITICAL)
+        ).to_logging()
         formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s')
 
-        # always write to file
-        handlers: list[logging.Handler] = [RotatingFileHandler(
-            filename=conf.options.log_file,
-            maxBytes=10 * (2 ** 20),
-        )]
+        handlers: list[logging.Handler] = []
+        if conf.options is not None:
+            handlers.append(RotatingFileHandler(
+                filename=conf.options.log_file,
+                maxBytes=10 * (2 ** 20),
+            ))
+
         # if debug mode, also write to stderr
         if conf.debug:
             handlers.append(logging.StreamHandler())
@@ -38,50 +72,54 @@ class CliContext(object):
             h.setFormatter(formatter)
             self.log.addHandler(h)
 
-    def __init__(self, conf: Config):
-        self.conf = conf
-        self._setup_logging(conf)
+    def __init__(self, confman: ConfMan):
+        self.confman = confman
+        self._setup_logging(self.confman.conf)
 
-    def update_profile_conf(self, new_profile: Profile) -> None:
-        confparser = configparser.ConfigParser()
-
-        # TODO refactor, look at get_config() in root.py
-        if confparser.read(self.conf.conf_path) != [str(self.conf.conf_path)]:
-            raise InternalErr(f'Failed to read configuration file from {self.conf.conf_path}')
-
-        profile_section_name = \
-            'profile' if new_profile.is_default() else f'profile.{new_profile.name}'
-
-        if not confparser.has_section(profile_section_name):
-            confparser.add_section(profile_section_name)
-
-        # TODO confparser should handle writing sections that are of NamedTuple type
-        confparser.set(section=profile_section_name, option='token', value=new_profile.token)
-        confparser.set(section=profile_section_name, option='base_url', value=new_profile.base_url)
-        confparser.set(section=profile_section_name, option='output',
-                       value=new_profile.output.name)
-
-        with open(self.conf.conf_path, 'w') as conf_file:
-            confparser.write(conf_file)
-
-    def upsolver_api(self) -> UpsolverApi:
-        # TODO this is used from both the interactive shell and the execute subcommand...
-        #      will also have to build the api for tests, and for local development
-        # TODO what configuration is needed
-        #      - from ~/.upsql/config?
-        #      - env vars (overrides)
-        #      - explicit values passed from cli invocation
-        return UpsolverApi()
-
-    def authenticator(self) -> Callable[[str], ProfileAuthSettings]:
+    def upsolver_api(self, auth_base_url: Optional[str] = None) -> UpsolverApi:
         """
-        Authenticator is separate from UpsolverApi because authentication calls are made
-        to a (potentially?) different endpoints - so stricly speaking, auth endpoint isn't
-        part of the (user) upsolver API
-        :return:
+        :param auth_base_url: used for initial authentication
+        :return: an implementation of UpsolverApi's interface.
         """
-        def dummy_auth(token: str) -> ProfileAuthSettings:
-            self.log.debug(f'authenticating token: {token} ...')
-            return ProfileAuthSettings(token=token, base_url='stam://upsolver.com')
+        return UpsolverRestApi(
+            auth_base_url=(
+                auth_base_url if auth_base_url is not None
+                else ConfMan.CLI_DEFAULT_BASE_URL
+            ),
+            auth_settings=get_auth_settings(self.confman.conf.active_profile),
+        )
 
-        return dummy_auth
+    def write(self, x: Any) -> None:
+        echo(message=self.confman.get_formatter()(x), file=sys.stdout)
+
+    def echo(self, msg: str) -> None:
+        echo(msg)
+
+    # def authenticate(self, email: str, password: str, base_url: Optional[str]) -> None:
+    #     api = self.upsolver_api(base_url)
+    #     profile_auth_settings = api.authenticate(email, password)
+    #     updated_profile = profile_auth_settings.update(self.confman.conf.active_profile)
+    #     self.confman.update_profile(updated_profile)
+    #     self.echo(
+    #         f'Successfully performed authentication for profile \'{updated_profile.name}\' '
+    #         f'(auth token: {updated_profile.token}, base url: {updated_profile.base_url})'
+    #     )
+
+    # def fmt(self, obj: NamedTuple) -> str:
+    #     """
+    #     TODO not sure this is the right place for this
+    #       also: does it make sense to have "Cluster" etc.? or should I just work with raw json
+    #       (i.e. dict) and so the transformers will always get a dictionary as input and output it?
+    #       maybe formatter will also know which fields are relevant from the response?
+    #       although sometimes that knowledge exists only at the api call scope...
+    #
+    #     format any object for output.
+    #     affected by: User can change output formats (e.g. JSON, CSV)
+    #     """
+    #     json.dump
+    #     desired_fmt = self.confman.conf.active_profile.output
+    #     if desired_fmt == OutputFmt.JSON:
+    #         return json.dumps(obj._asdict())
+    #     else:
+    #         raise InternalErr(f'Unsupported output format: {desired_fmt}')
+    #

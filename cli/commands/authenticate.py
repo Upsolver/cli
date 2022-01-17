@@ -1,13 +1,23 @@
+from typing import Optional
+
 import click
 
 from cli.commands.context import CliContext
 
 
-@click.command(help='Perform Authentication and save auth token in config file')
-@click.pass_context
-@click.option('-t', '--token', required=True, help='Authentication token')
-def authenticate(ctx: click.Context, token: str) -> None:
-    clictx = ctx.ensure_object(CliContext)
-    profile_auth_settings = clictx.authenticator()(token)
-    updated_profile = profile_auth_settings.update(clictx.conf.active_profile)
-    clictx.update_profile_conf(updated_profile)
+@click.command(help='Retrieve API token to perform further actions')
+@click.pass_obj
+# TODO @click.option('-t', '--token', default=None, help='Authentication token')
+@click.option('-e', '--email', required=True, help='User\'s email')
+@click.option('-p', '--password', required=True, help='User\'s Password')
+@click.option('-u', '--base-url', default=None,
+              help='URL of Upsolver\'s Authentication API (for example: "-u api.upsolver.com:88")"')
+def authenticate(ctx: CliContext, email: str, password: str, base_url: Optional[str]) -> None:
+    api = ctx.upsolver_api(base_url)
+    profile_auth_settings = api.authenticate(email, password)
+    updated_profile = profile_auth_settings.update(ctx.confman.conf.active_profile)
+    ctx.confman.update_profile(updated_profile)
+    ctx.echo(
+        f'Successfully performed authentication for profile \'{updated_profile.name}\' '
+        f'(auth token: {updated_profile.token}, base url: {updated_profile.base_url})'
+    )

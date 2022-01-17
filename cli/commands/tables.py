@@ -6,6 +6,9 @@ from cli.commands.context import CliContext
 
 @click.group()
 def tables() -> None:
+    """
+    View & manage tables
+    """
     pass
 
 
