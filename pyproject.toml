@@ -13,6 +13,7 @@ click = "^8.0.3"
 typing-extensions = "^4.0.1"
 requests = "^2.27.1"
 simplejson = "^3.17.6"
+yarl = "^1.7.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -23,6 +24,7 @@ isort = "^5.10.1"
 pytest-cov = "^3.0.0"
 types-requests = "^2.27.3"
 pytest-mock = "^3.6.1"
+types-simplejson = "^3.17.3"
 
 [tool.isort]
 multi_line_output = 3

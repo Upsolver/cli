@@ -36,6 +36,19 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+## Building the Project
+
+### Wheel Archive
+can be installed w/ pip: `pip install upsolver.whl`:
+
 ```commandline
 poetry build
+```
+
+### pyinstaller
+
+- [ ] TODO: sign the binary
+
+```commandline
+pyinstaller cli/main.py --name upsolver --onefile
 ```

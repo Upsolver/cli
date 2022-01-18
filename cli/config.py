@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, NamedTuple, Optional
 
 import simplejson as json
+from yarl import URL
 
 from cli.errors import BadConfig, ConfigReadFail, InternalErr
 
@@ -28,7 +29,7 @@ class Profile(NamedTuple):
     """
     name: str
     token: Optional[str] = None
-    base_url: Optional[str] = None  # authentication request(s) will be issued to this endpoint
+    base_url: Optional[URL] = None
     output: OutputFmt = OutputFmt.JSON
 
     def is_default(self) -> bool:
@@ -40,7 +41,7 @@ class ProfileAuthSettings(NamedTuple):
     Expresses the configuration recieved from authentication endpoint
     """
     token: str
-    base_url: str
+    base_url: URL
 
     def update(self, p: Profile) -> Profile:
         """
@@ -171,6 +172,20 @@ def fmt_csv(x: Any) -> str:
 #         pass
 #
 
+def parse_url(url: Optional[str]) -> Optional[URL]:
+    if url is None:
+        return None
+
+    burl = URL(url)
+    if burl.is_absolute():
+        return burl
+    else:
+        if url.startswith('localhost'):
+            return URL('http://' + url)
+        else:
+            return URL('https://' + url)
+
+
 class ConfMan(object):
     """
     Configuration Manager. All access (read/write/modify) to Config (and underlying configuration
@@ -179,7 +194,7 @@ class ConfMan(object):
 
     CLI_HOME_DIR: Path = Path(Path.home() / '.upsql')
     CLI_DEFAULT_LOG_PATH: Path = CLI_HOME_DIR / 'cli.log'
-    CLI_DEFAULT_BASE_URL = 'localhost:8080'  # TODO api.upsolver.com or w/e
+    CLI_DEFAULT_BASE_URL = URL('https://api.upsolver.com')
 
     conf_path: Path
     conf: Config
@@ -232,7 +247,7 @@ class ConfMan(object):
                 Profile(
                     name=section_parts[1] if len(section_parts) > 1 else "default",
                     token=confparser.get(profile_section, 'token', fallback=None),
-                    base_url=confparser.get(profile_section, 'base_url', fallback=None),
+                    base_url=parse_url(confparser.get(profile_section, 'base_url', fallback=None)),
                     output=OutputFmt[confparser.get(profile_section, 'output', fallback='JSON')]
                 )
             )
@@ -282,7 +297,7 @@ class ConfMan(object):
 
         # TODO confparser should handle writing sections that are of NamedTuple type?
         confparser.set(section=profile_section_name, option='token', value=profile.token)
-        confparser.set(section=profile_section_name, option='base_url', value=profile.base_url)
+        confparser.set(section=profile_section_name, option='base_url', value=str(profile.base_url))
         confparser.set(section=profile_section_name, option='output', value=profile.output.name)
 
         with open(self.conf_path, 'w') as conf_file:

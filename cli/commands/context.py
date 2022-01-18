@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from typing import Any, Optional
 
 from click import echo
+from yarl import URL
 
 from cli.config import Config, ConfMan, LogLvl, get_auth_settings
 from cli.upsolver import UpsolverApi, UpsolverRestApi
@@ -76,7 +77,7 @@ class CliContext(object):
         self.confman = confman
         self._setup_logging(self.confman.conf)
 
-    def upsolver_api(self, auth_base_url: Optional[str] = None) -> UpsolverApi:
+    def upsolver_api(self, auth_base_url: Optional[URL] = None) -> UpsolverApi:
         """
         :param auth_base_url: used for initial authentication
         :return: an implementation of UpsolverApi's interface.

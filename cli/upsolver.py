@@ -9,9 +9,10 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import StyleAndTextTuples
 from prompt_toolkit.lexers import Lexer
 from requests import Response
+from yarl import URL
 
-from cli.config import ProfileAuthSettings
-from cli.errors import ApiErr, BadConfig
+from cli.config import ProfileAuthSettings, parse_url
+from cli.errors import ApiErr, BadConfig, InternalErr
 
 # TODO
 #   - [ ] abstract class, implementations: actual, mock (tests, mocking lib for python?), local
@@ -125,14 +126,17 @@ class UpsolverRestApi(UpsolverApi):
     # subtle. If __init__ assumed a return annotation of -> None, would that mean that an argument-less,
     # un-annotated __init__ method should still be type-checked? Rather than leaving this ambiguous or
     # introducing an exception to the exception, we simply say that __init__ ought to have a return
-    # annotation; t~he default behavior is thus the same as for other methods.)
+    # annotation; the default behavior is thus the same as for other methods.)
     def __init__(self,
-                 auth_base_url: str,
+                 auth_base_url: URL,
                  auth_settings: Optional[ProfileAuthSettings]) -> None:
+        if not auth_base_url.is_absolute():
+            raise InternalErr(f'Provided base auth url is not absolute: {auth_base_url}')
+
         self.auth_base_url = auth_base_url
         self.auth_settings = auth_settings
 
-    def _base_url(self) -> str:
+    def _base_url(self) -> URL:
         if self.auth_settings is None:
             raise BadConfig('Missing auth settings')
         return self.auth_settings.base_url
@@ -145,7 +149,7 @@ class UpsolverRestApi(UpsolverApi):
     def _gen_api_token(self, username: str, password: str) -> str:
         try:
             with requests.post(
-                    url=f'http://{self.auth_base_url}/api-tokens/',
+                    url=str(self.auth_base_url / 'api-tokens'),
                     headers={
                         'X-Api-Email': username,
                         'X-Api-Password': password,
@@ -161,15 +165,20 @@ class UpsolverRestApi(UpsolverApi):
         except Exception as ex:
             raise ApiErr(ex)
 
-    def _get_base_url(self, token: str) -> str:
+    def _get_base_url(self, token: str) -> URL:
         try:
             with requests.get(
-                    url=f'http://{self.auth_base_url}/environments/local-api/',
+                    url=str(self.auth_base_url / 'environments' / 'local-api'),
                     headers={'Authorization': token},
             ) as resp:
-                return resp.json()['dnsInfo']['name']
+                base_url = parse_url(resp.json()['dnsInfo']['name'])
         except Exception as ex:
             raise ApiErr(ex)
+
+        if base_url is not None:
+            return base_url
+        else:
+            raise ApiErr('Failed to retrieve base_url, dnsInfo.name is not available')
 
     def authenticate(self, username: str, password: str) -> ProfileAuthSettings:
         api_token = self._gen_api_token(username, password)
@@ -213,7 +222,7 @@ class UpsolverRestApi(UpsolverApi):
         expression = expression.split(';')[0]  # TODO allow execution of multiple statements?
 
         initial_resp = requests.post(
-            url=f'http://{self._base_url()}/query/',
+            url=str(self._base_url() / 'query'),
             headers={'Authorization': self._auth_token()},
             json={
                 'sql': expression,
@@ -261,7 +270,7 @@ class UpsolverRestApi(UpsolverApi):
                     time.sleep(to_wait_secs)
                     waited_secs += to_wait_secs
                     return drain(requests.get(
-                        url=f'http://{self._base_url()}{rjson["current"]}',
+                        url=f'{str(self._base_url())}{rjson["current"]}',
                         headers={'Authorization': self._auth_token()},
                     ))
 
@@ -271,11 +280,11 @@ class UpsolverRestApi(UpsolverApi):
             grid = result['grid']  # columns, data, ...
             column_names = [c['name'] for c in grid['columns']]
             data_w_columns = [dict(zip(column_names, row)) for row in grid['data']]
-            next = result.get('next')
+            next_result = result.get('next')
             return data_w_columns + (
-                [] if next is None
+                [] if next_result is None
                 else drain(requests.get(
-                    url=f'http://{self._base_url()}{next}',
+                    url=f'{str(self._base_url())}{next_result}',
                     headers={'Authorization': self._auth_token()},
                 ))
             )
@@ -285,7 +294,7 @@ class UpsolverRestApi(UpsolverApi):
     def _http_get(self, url_suffix: str) -> dict[Any, Any]:
         try:
             with requests.get(
-                url=f'http://{self._base_url()}/{url_suffix}',
+                url=str(self._base_url() / url_suffix),
                 headers={'Authorization': self._auth_token()}
             ) as resp:
                 return resp.json()
