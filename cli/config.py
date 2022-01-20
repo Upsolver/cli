@@ -107,6 +107,7 @@ class Config(NamedTuple):
 Formatter = Callable[[Any], str]
 
 
+# TODO(CR) move to formatters.py or something
 def fmt_json(x: Any) -> str:
     def dumps(y: Any) -> str:
         return json.dumps(y, indent=2)
@@ -172,6 +173,7 @@ def fmt_csv(x: Any) -> str:
 #         pass
 #
 
+# TODO(CR) move to utils.py or something
 def parse_url(url: Optional[str]) -> Optional[URL]:
     if url is None:
         return None
@@ -186,12 +188,14 @@ def parse_url(url: Optional[str]) -> Optional[URL]:
             return URL('https://' + url)
 
 
+# TODO(CR) rename to ConfigurationManager
 class ConfMan(object):
     """
     Configuration Manager. All access (read/write/modify) to Config (and underlying configuration
     file if one exists) goes through the ConfMan.
     """
 
+    # TODO(CR) pull home dir from ENV and default to this if there's nothing
     CLI_HOME_DIR: Path = Path(Path.home() / '.upsql')
     CLI_DEFAULT_LOG_PATH: Path = CLI_HOME_DIR / 'cli.log'
     CLI_DEFAULT_BASE_URL = URL('https://api.upsolver.com')

@@ -6,6 +6,7 @@ class InternalErr(Exception):
     pass
 
 
+# TODO(CR) use built-in if they exist
 class BadArgument(Exception):
     pass
 

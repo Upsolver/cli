@@ -15,6 +15,7 @@ from cli.config import parse_url
               help='URL of Upsolver\'s Authentication API '
                    '(for example: "-u https://api.upsolver.com")"')
 def authenticate(ctx: CliContext, email: str, password: str, base_url: Optional[str]) -> None:
+    print(email, password)
     api = ctx.upsolver_api(parse_url(base_url))
     profile_auth_settings = api.authenticate(email, password)
     updated_profile = profile_auth_settings.update(ctx.confman.conf.active_profile)

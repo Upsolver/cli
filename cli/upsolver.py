@@ -161,6 +161,7 @@ class UpsolverRestApi(UpsolverApi):
                         }
                     }
             ) as resp:
+                print(resp.status_code, resp.text)
                 return resp.json()['apiToken']
         except Exception as ex:
             raise ApiErr(ex)
@@ -219,12 +220,16 @@ class UpsolverRestApi(UpsolverApi):
         # responses will have to be handled accordingly: the response body is a list where
         # each entry refers to the execution status of corresponding expression...
         # for now it's easier to assume that expression is a singular statement to be executed
+
+        # TODO(CR) better implementation for this (; might appear as non-statement-divider)
+        #   or just support multiple commands
+        #   - use antlr?
         expression = expression.split(';')[0]  # TODO allow execution of multiple statements?
 
         initial_resp = requests.post(
             url=str(self._base_url() / 'query'),
             headers={'Authorization': self._auth_token()},
-            json={
+            json={  # TODO(CR) use typed NamedTuple for this / builder function?
                 'sql': expression,
                 'range': {
                     'start': {'line': 1, 'column': 1},
@@ -269,6 +274,7 @@ class UpsolverRestApi(UpsolverApi):
                     to_wait_secs = 0.5
                     time.sleep(to_wait_secs)
                     waited_secs += to_wait_secs
+                    # TODO(CR) fix recursion, this just wait 0.5 seconds between calls
                     return drain(requests.get(
                         url=f'{str(self._base_url())}{rjson["current"]}',
                         headers={'Authorization': self._auth_token()},
@@ -307,6 +313,7 @@ class UpsolverRestApi(UpsolverApi):
             for dashboard_ele in self._http_get('environments/dashboard')
         ]
 
+        # TODO(CR) improve error handling: what if a key is missing (what if null value)
         return [
             Cluster(name=env['displayData']['name'], id=env['id'])
             for env in environments
@@ -368,11 +375,15 @@ class UpsolverApiCompleter(Completer):
     def __init__(self, api: UpsolverApi):
         self.api = api
 
+    # TODO(CR) UpsolverApi shouldn't return objects of types that the prompt toolkit expects,
+    #  translation should happen here
+
     def get_completions(self, document: Document, complete_event: CompleteEvent) -> Iterable[Completion]:
         # TODO what is complete_event for?
         return self.api.get_completions(document)
 
 
+# TODO(CR) change name / move ; create separate dir for these (completers, lexers)
 class FooCompleter(Completer):
     def __init__(self, api: UpsolverApi):
         self.api = api
