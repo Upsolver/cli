@@ -15,7 +15,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.sql import SqlLexer
 
 from cli.config import Formatter
-from cli.upsolver import FooCompleter, UpsolverApi
+from cli.upsolver.api import FooCompleter, UpsolverApi
 
 
 class UpsolverShell(object):
@@ -31,7 +31,8 @@ class UpsolverShell(object):
             lexer=PygmentsLexer(SqlLexer),
 
             # TODO upsolver lexer causes exception in event loop
-            # lexer=UpsolverApiLexer(self.api),  # PygmentsLexer(SqlLexer),  # used for syntax highlighting
+            # lexer=UpsolverApiLexer(self.upsolver),  # PygmentsLexer(SqlLexer),
+            # used for syntax highlighting
 
             enable_history_search=False,
             search_ignore_case=True,
@@ -39,7 +40,7 @@ class UpsolverShell(object):
             #  to not enable this at the same time as complete_while_typing, because when there is
             #  an autocompletion found, the up arrows usually browse through the completions,
             #  rather than through the history.
-            # completer=ThreadedCompleter(UpsolverApiCompleter(self.api)),
+            # completer=ThreadedCompleter(UpsolverApiCompleter(self.upsolver)),
             completer=ThreadedCompleter(FooCompleter(self.api)),
             multiline=False,  # TODO figure out how to get return from prompt() if I set this to True
 

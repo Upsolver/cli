@@ -1,16 +1,15 @@
 import configparser
-import csv
-import io
 import logging
 import os
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, NamedTuple, Optional
+from typing import NamedTuple, Optional
 
-import simplejson as json
 from yarl import URL
 
-from cli.errors import BadConfig, ConfigReadFail, InternalErr
+from cli.errors import ConfigErr, ConfigReadFail, InternalErr
+from cli.formatters import Formatter, fmt_csv, fmt_json
+from cli.utils import ensure_exists, parse_url
 
 
 class OutputFmt(Enum):
@@ -39,6 +38,9 @@ class Profile(NamedTuple):
 class ProfileAuthSettings(NamedTuple):
     """
     Expresses the configuration recieved from authentication endpoint
+
+    base_url is used to retrieve another base url that will be used for futher requests (it may
+    or may not be different)
     """
     token: str
     base_url: URL
@@ -90,113 +92,19 @@ class Config(NamedTuple):
     debug: bool  # user has used the --debug flag
 
 
-# class FormatterO(metaclass=ABCMeta):
-#     @abstractmethod
-#     def fmt_namedtuple(self, x: NamedTuple) -> str:
-#         pass
-#
-#     def fmt_dict(self, d: dict) -> str:
-#         pass
-#
-#
-# class JsonFormatter(FormatterO):
-#     def fmt(self, x: NamedTuple) -> str:
-#         return json.dumps(x._asdict())
-#
-
-Formatter = Callable[[Any], str]
+def get_home_dir() -> Path:
+    from_env = os.environ.get('UPSOLVER_HOME')
+    return Path(from_env) if from_env is not None \
+        else Path(Path.home() / '.upsolver')
 
 
-# TODO(CR) move to formatters.py or something
-def fmt_json(x: Any) -> str:
-    def dumps(y: Any) -> str:
-        return json.dumps(y, indent=2)
-
-    if type(x) is list:
-        return '\n'.join([dumps(xx) for xx in x])
-    else:
-        return dumps(x)
-
-    # dumps_args = {
-    #     "obj": x._asdict() if hasattr(x, '_asdict') else x,  # NamedTuple
-    #     "indent": 2
-    # }
-    # return json.dumps(**dumps_args)
-
-
-def fmt_csv(x: Any) -> str:
-    if type(x) is not list:  # TODO should work for now...
-        raise InternalErr(f'Expected list of dictonaries, got: {x}')
-
-    def to_dict(o: Any) -> dict[Any, Any]:
-        if hasattr(o, '_asdict'):
-            return o._asdict()
-        elif type(o) is dict:
-            return o
-        else:
-            raise InternalErr(f'{o} is not a dict')
-
-    with io.StringIO() as o:
-        w = csv.DictWriter(o, fieldnames=list(to_dict(x[0])), quoting=csv.QUOTE_NONNUMERIC)
-        w.writeheader()
-        for r in x:
-            w.writerow(to_dict(r))
-        return o.getvalue()
-
-
-# class IConfMan(metaclass=ABCMeta):
-#     conf: Config
-#
-#     @abstractmethod
-#     def get_formatter(self) -> Formatter:
-#         pass
-#
-#     @abstractmethod
-#     def update_profile(self, profile: Profile) -> Config:
-#         pass
-#
-#
-# class TestConfMan(IConfMan):
-#     def __init__(self):
-#         default_profile = Profile(name='default')
-#         self.conf = Config(
-#             active_profile=default_profile,
-#             profiles=[default_profile],
-#             options=None,
-#             debug=False
-#         )
-#
-#     def get_formatter(self) -> Formatter:
-#         return fmt_json
-#
-#     def update_profile(self, profile: Profile) -> Config:
-#         pass
-#
-
-# TODO(CR) move to utils.py or something
-def parse_url(url: Optional[str]) -> Optional[URL]:
-    if url is None:
-        return None
-
-    burl = URL(url)
-    if burl.is_absolute():
-        return burl
-    else:
-        if url.startswith('localhost'):
-            return URL('http://' + url)
-        else:
-            return URL('https://' + url)
-
-
-# TODO(CR) rename to ConfigurationManager
-class ConfMan(object):
+class ConfigurationManager(object):
     """
     Configuration Manager. All access (read/write/modify) to Config (and underlying configuration
     file if one exists) goes through the ConfMan.
     """
 
-    # TODO(CR) pull home dir from ENV and default to this if there's nothing
-    CLI_HOME_DIR: Path = Path(Path.home() / '.upsql')
+    CLI_HOME_DIR: Path = get_home_dir()
     CLI_DEFAULT_LOG_PATH: Path = CLI_HOME_DIR / 'cli.log'
     CLI_DEFAULT_BASE_URL = URL('https://api.upsolver.com')
 
@@ -205,12 +113,8 @@ class ConfMan(object):
 
     @staticmethod
     def _get_confparser(path: Path) -> configparser.ConfigParser:
+        ensure_exists(path)
         confparser = configparser.ConfigParser()
-
-        # create the config file if it doesn't exist
-        if (not path.exists()) and path.parent.exists() and path.parent.is_dir():
-            path.touch()
-
         try:
             if confparser.read(path) != [str(path)]:
                 raise ConfigReadFail(path)
@@ -225,7 +129,7 @@ class ConfMan(object):
             if path_str is not None:
                 return Path(os.path.expanduser(path_str))
             else:
-                return ConfMan.CLI_DEFAULT_LOG_PATH
+                return ConfigurationManager.CLI_DEFAULT_LOG_PATH
 
         def get_log_lvl(parser: configparser.ConfigParser) -> LogLvl:
             lvl_str: str = \
@@ -235,14 +139,14 @@ class ConfMan(object):
             else:
                 return LogLvl.CRITICAL
 
-        confparser = ConfMan._get_confparser(path)
+        confparser = ConfigurationManager._get_confparser(path)
 
         profiles: list[Profile] = list()
         for profile_section in [section for section in confparser.sections()
                                 if section.startswith("profile")]:
             section_parts = profile_section.split('.')
             if len(section_parts) != 2 and profile_section != "profile":
-                raise BadConfig(f'invalid profile section name: "{profile_section}". '
+                raise ConfigErr(f'invalid profile section name: "{profile_section}". '
                                 f'profile section should of the form: [profile.name] '
                                 f'(or [profile] for default profile)')
 
@@ -293,7 +197,7 @@ class ConfMan(object):
         - updates in-mem snapshot of configuration
         - returns updated configuration
         """
-        confparser = ConfMan._get_confparser(self.conf_path)
+        confparser = ConfigurationManager._get_confparser(self.conf_path)
         profile_section_name = 'profile' if profile.is_default() else f'profile.{profile.name}'
 
         if not confparser.has_section(profile_section_name):

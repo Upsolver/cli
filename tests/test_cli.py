@@ -7,7 +7,7 @@ from pytest_mock import MockerFixture
 from cli import __version__
 from cli.commands.catalogs import catalogs
 from cli.commands.context import CliContext
-from cli.config import ConfMan
+from cli.config import ConfigurationManager
 from cli.errors import ApiErr
 from cli.upsolver import Catalog
 
@@ -17,7 +17,7 @@ def test_version():
 
 
 def test_catalogs_ls_no_auth(tmp_path: Path) -> None:
-    ctx = CliContext(ConfMan(tmp_path / 'conf'))
+    ctx = CliContext(ConfigurationManager(tmp_path / 'conf'))
     runner = CliRunner()
     result = runner.invoke(catalogs, ['ls'], obj=ctx)
     assert isinstance(result.exception, ApiErr)
@@ -32,7 +32,7 @@ token = token1234
 base_url = localhost:8080
 output = JSON''')
 
-    ctx = CliContext(ConfMan(conf_path))
+    ctx = CliContext(ConfigurationManager(conf_path))
     runner = CliRunner()
 
     c = Catalog(id='id0', name='c0', created_by='bob', kind='S3', orgId='orgid0')

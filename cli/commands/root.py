@@ -1,55 +1,3 @@
-"""
-https://upsolver.slite.com/app/filters/sharedWithMe/notes/2yWXSeWdc
-
-authenticate
-  --token
-  --browser
-
-clusters
-  ls
-  stats
-  export
-  stop
-  run
-  rm
-
-catalogs
-  ls
-  export
-
-tables
-  ls
-  export
-  stats
-  partitions
-
-jobs
-  ls
-  export
-  stats
-
-execute
-  --format
-  --catalog
-  --dry-run
-
-shell
-
-# TODO option/argument validators
-
-
-OPTIONS:
-  - defined in ~/.upsql/config (ini config file)
-  - can be overwritten w/ '-o'/'--option' flags when running cli
-  - can be overwritten by command options (e.g. output_format)
-
-CONFIGURATION:
-  - organization, username, rolename, password(?)
-    -> but these are also found under [profile] section of the config file
-  - values can be overwritten by ENVVARS
-  - contains options(?)
-
-"""
 import os
 from pathlib import Path
 from typing import Optional
@@ -57,15 +5,15 @@ from typing import Optional
 import click
 
 import cli
-from cli.commands.authenticate import authenticate
 from cli.commands.catalogs import catalogs
 from cli.commands.clusters import clusters
+from cli.commands.configure import configure
 from cli.commands.context import CliContext
 from cli.commands.execute import execute
 from cli.commands.jobs import jobs
 from cli.commands.shell import shell
 from cli.commands.tables import tables
-from cli.config import ConfMan
+from cli.config import ConfigurationManager
 
 
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
@@ -98,15 +46,15 @@ def root_command(
     #     clioptions[section_parts[0]] = ''.join(section_parts[1:])
 
     conf_path = (
-        Path(ConfMan.CLI_HOME_DIR / 'config') if config is None
+        Path(ConfigurationManager.CLI_HOME_DIR / 'config') if config is None
         else Path(os.path.expanduser(config))
     )
 
-    ctx.obj = CliContext(confman=ConfMan(conf_path, profile, debug))
+    ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, debug))
 
 
 # TODO automate this by searching commands package?
-root_command.add_command(authenticate)
+root_command.add_command(configure)
 root_command.add_command(execute)
 root_command.add_command(shell)
 root_command.add_command(clusters)

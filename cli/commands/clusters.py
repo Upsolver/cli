@@ -1,7 +1,8 @@
 import click
-from click import echo
 
 from cli.commands.context import CliContext
+from cli.ui import stats_screen
+from cli.upsolver.entities import Cluster
 
 
 @click.group()
@@ -19,11 +20,18 @@ def ls(ctx: CliContext) -> None:
 
 
 @clusters.command(help='Display a live stream of cluster(s) usage statistics')
+@click.pass_obj
 @click.argument('clusters', nargs=-1)
-def stats(clusters: list[str]) -> None:
-    # TODO what endpoint to use for this? should get_clusters return Cluster object with this info
-    #  or should we have a different endpoint specifically for stats?
-    echo(f'running clusters stats (clusters=[{", ".join(clusters)}]) ... ')
+def stats(ctx: CliContext, clusters: list[str]) -> None:
+    api = ctx.upsolver_api()
+    stats_screen(
+        title='Cluster Stats',
+        headers=list(Cluster._fields),
+        get_values=lambda: [
+            c for c in api.get_clusters()
+            if (len(clusters) == 0) or (c.name in clusters)
+        ]
+    )
 
 
 @clusters.command(help='Export a certain cluster as a "CREATE CLUSTER" sql command that can be '
@@ -31,14 +39,13 @@ def stats(clusters: list[str]) -> None:
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def export(ctx: CliContext, cluster: str) -> None:
-    echo(ctx.upsolver_api().export_cluster(cluster))
+    ctx.echo(ctx.upsolver_api().export_cluster(cluster))
 
 
 @clusters.command(help='Stop a cluster')
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def stop(ctx: CliContext, cluster: str) -> None:
-    echo(f'stopping {cluster} ...')
     ctx.upsolver_api().stop_cluster(cluster)
 
 
@@ -46,7 +53,6 @@ def stop(ctx: CliContext, cluster: str) -> None:
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def run(ctx: CliContext, cluster: str) -> None:
-    echo(f'running cluster {cluster} ...')
     ctx.upsolver_api().run_cluster(cluster)
 
 
@@ -54,5 +60,4 @@ def run(ctx: CliContext, cluster: str) -> None:
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def rm(ctx: CliContext, cluster: str) -> None:
-    echo(f'deleting cluster {cluster} ...')
     ctx.upsolver_api().delete_cluster(cluster)

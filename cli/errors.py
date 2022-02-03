@@ -6,16 +6,15 @@ class InternalErr(Exception):
     pass
 
 
-# TODO(CR) use built-in if they exist
-class BadArgument(Exception):
+class BadArgument(ValueError):
     pass
 
 
-class BadConfig(Exception):
+class ConfigErr(Exception):
     pass
 
 
-class ConfigReadFail(BadConfig):
+class ConfigReadFail(ConfigErr):
     def __init__(self, path: Path, why: Optional[str] = None):
         super(ConfigReadFail, self).__init__(
             f'Failed to read configuration from {path}' + ('' if why is None else f': {why}')

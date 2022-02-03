@@ -1,44 +1,33 @@
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from click import echo
+from prompt_toolkit.completion import Completion
+from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import StyleAndTextTuples
 from yarl import URL
 
-from cli.config import Config, ConfMan, LogLvl, get_auth_settings
-from cli.upsolver import UpsolverApi, UpsolverRestApi
-
-# class ICliContext(metaclass=ABCMeta):
-#     confman: IConfMan
-#     log: logging.Logger
-#
-#     @abstractmethod
-#     def upsolver_api(self, auth_base_url: Optional[str] = None) -> UpsolverApi:
-#         pass
-#
-#     @abstractmethod
-#     def write(self, x: Any) -> None:
-#         pass
-#
-#     @abstractmethod
-#     def echo(self, msg: str) -> None:
-#         pass
-#
-#
-# class TestCliContext(ICliContext):
-#     def __init__(self, api: UpsolverApi):
-#         self.api = api
-#         self.confman = TestConfMan()
-#
-#     def upsolver_api(self, auth_base_url: Optional[str] = None) -> UpsolverApi:
-#         pass
-#
-#     def write(self, x: Any) -> None:
-#         pass
-#
-#     def echo(self, msg: str) -> None:
-#         pass
+from cli.config import (
+    Config,
+    ConfigurationManager,
+    LogLvl,
+    ProfileAuthSettings,
+    get_auth_settings,
+)
+from cli.errors import ConfigErr
+from cli.upsolver.api import UpsolverApi
+from cli.upsolver.auth import AuthApi, RestAuthApi
+from cli.upsolver.catalogs import CatalogsApi, RestCatalogsApi
+from cli.upsolver.clusters import ClustersApi, RestClustersApi
+from cli.upsolver.entities import Catalog, Cluster, Job, Table, TablePartition
+from cli.upsolver.jobs import JobsApi, RestJobsApi
+from cli.upsolver.lexer import SimpleQueryLexer
+from cli.upsolver.lsp import LspApi, RestLspApi
+from cli.upsolver.query import QueryApi, RestQueryApi
+from cli.upsolver.requester import Requester
+from cli.upsolver.tables import RestTablesApi, TablesApi
 
 
 class CliContext(object):
@@ -46,8 +35,16 @@ class CliContext(object):
     This is used as the value for click.Context object that is passed to subcommands.
 
     CliContext holds "global" information (e.g. configuration) and is capable of spawning
-    entities that depend on this configuration (e.g. upsolver api).
+    entities that depend on this configuration (e.g. upsolver upsolver).
+
+    Also serves as the builder of UpsolverApi from more basic api components.
+
+    Reasoning for having two builder methods, one for auth api and another for whole upsolver api:
+    all api components depend on authentication api, and so we need to instantiate it before all
+    others and use it, and with the results of calling it we are able to construct the other
+    components.
     """
+
     def _setup_logging(self, conf: Config) -> None:
         self.log = logging.getLogger('CLI')
 
@@ -73,54 +70,91 @@ class CliContext(object):
             h.setFormatter(formatter)
             self.log.addHandler(h)
 
-    def __init__(self, confman: ConfMan):
+    def __init__(self, confman: ConfigurationManager):
         self.confman = confman
         self._setup_logging(self.confman.conf)
 
-    def upsolver_api(self, auth_base_url: Optional[URL] = None) -> UpsolverApi:
-        """
-        :param auth_base_url: used for initial authentication
-        :return: an implementation of UpsolverApi's interface.
-        """
-        return UpsolverRestApi(
-            auth_base_url=(
-                auth_base_url if auth_base_url is not None
-                else ConfMan.CLI_DEFAULT_BASE_URL
-            ),
-            auth_settings=get_auth_settings(self.confman.conf.active_profile),
-        )
+    def auth_api(self, auth_base_url: Optional[URL] = None) -> AuthApi:
+        if auth_base_url is None:
+            auth_base_url = ConfigurationManager.CLI_DEFAULT_BASE_URL
+        assert auth_base_url.is_absolute()
+
+        return RestAuthApi(auth_base_url)
+
+    def upsolver_api(self) -> UpsolverApi:
+        auth_settings: Optional[ProfileAuthSettings] = \
+            get_auth_settings(self.confman.conf.active_profile)
+
+        if auth_settings is None:
+            raise ConfigErr('Could not find authentication settings, please use the '
+                            '`configure` sub-command to generate them.')
+
+        auth: AuthApi = RestAuthApi(auth_settings.base_url)
+        requester = Requester(auth_settings.token, AuthApi.get_base_url(auth_settings))
+
+        clusters: ClustersApi = RestClustersApi(requester)
+        catalogs: CatalogsApi = RestCatalogsApi(requester)
+        jobs: JobsApi = RestJobsApi(requester)
+        tables: TablesApi = RestTablesApi(requester)
+        queries: QueryApi = RestQueryApi(requester, SimpleQueryLexer())
+        lsp: LspApi = RestLspApi(requester)
+
+        class UpsolverApiImpl(UpsolverApi):
+            def get_completions(self, doc: Document) -> list[Completion]:
+                return lsp.get_completions(doc)
+
+            def lex_document(self, document: Document) -> Callable[[int], StyleAndTextTuples]:
+                return lsp.lex_document(document)
+
+            def check_syntax(self, expression: str) -> list[str]:
+                return queries.check_syntax(expression)
+
+            def execute(self, query: str) -> list[dict[Any, Any]]:
+                return queries.execute(query)
+
+            def get_tables(self) -> list[Table]:
+                return tables.get_tables()
+
+            def export_table(self, table: str) -> str:
+                return tables.export_table(table)
+
+            def get_table_partitions(self, table: str) -> list[TablePartition]:
+                return tables.get_table_partitions(table)
+
+            def get_catalogs(self) -> list[Catalog]:
+                return catalogs.get_catalogs()
+
+            def export_catalog(self, catalog: str) -> str:
+                return catalogs.export_catalog(catalog)
+
+            def get_jobs(self) -> list[Job]:
+                return jobs.get_jobs()
+
+            def export_job(self, job: str) -> str:
+                return jobs.export_job(job)
+
+            def export_cluster(self, cluster: str) -> str:
+                return clusters.export_cluster(cluster)
+
+            def stop_cluster(self, cluster: str) -> Optional[str]:
+                return clusters.stop_cluster(cluster)
+
+            def run_cluster(self, cluster: str) -> Optional[str]:
+                return clusters.run_cluster(cluster)
+
+            def delete_cluster(self, cluster: str) -> Optional[str]:
+                return clusters.delete_cluster(cluster)
+
+            def get_clusters(self) -> list[Cluster]:
+                return clusters.get_clusters()
+
+            def authenticate(self, email: str, password: str) -> ProfileAuthSettings:
+                return auth.authenticate(email, password)
+
+        return UpsolverApiImpl()
 
     def write(self, x: Any) -> None:
         echo(message=self.confman.get_formatter()(x), file=sys.stdout)
 
     def echo(self, msg: str) -> None:
         echo(msg)
-
-    # def authenticate(self, email: str, password: str, base_url: Optional[str]) -> None:
-    #     api = self.upsolver_api(base_url)
-    #     profile_auth_settings = api.authenticate(email, password)
-    #     updated_profile = profile_auth_settings.update(self.confman.conf.active_profile)
-    #     self.confman.update_profile(updated_profile)
-    #     self.echo(
-    #         f'Successfully performed authentication for profile \'{updated_profile.name}\' '
-    #         f'(auth token: {updated_profile.token}, base url: {updated_profile.base_url})'
-    #     )
-
-    # def fmt(self, obj: NamedTuple) -> str:
-    #     """
-    #     TODO not sure this is the right place for this
-    #       also: does it make sense to have "Cluster" etc.? or should I just work with raw json
-    #       (i.e. dict) and so the transformers will always get a dictionary as input and output it?
-    #       maybe formatter will also know which fields are relevant from the response?
-    #       although sometimes that knowledge exists only at the api call scope...
-    #
-    #     format any object for output.
-    #     affected by: User can change output formats (e.g. JSON, CSV)
-    #     """
-    #     json.dump
-    #     desired_fmt = self.confman.conf.active_profile.output
-    #     if desired_fmt == OutputFmt.JSON:
-    #         return json.dumps(obj._asdict())
-    #     else:
-    #         raise InternalErr(f'Unsupported output format: {desired_fmt}')
-    #

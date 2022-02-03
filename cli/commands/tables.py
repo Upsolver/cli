@@ -1,7 +1,8 @@
 import click
-from click import echo
 
 from cli.commands.context import CliContext
+from cli.ui import stats_screen
+from cli.upsolver.entities import Table
 
 
 @click.group()
@@ -15,13 +16,22 @@ def tables() -> None:
 @tables.command(help='List clusters')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    echo('\n'.join([c.name for c in ctx.upsolver_api().get_tables()]))
+    ctx.write(ctx.upsolver_api().get_tables())
 
 
 @tables.command(help='Display a live stream of table(s) statistics')
+@click.pass_obj
 @click.argument('tables', nargs=-1)
-def stats(tables: list[str]) -> None:
-    echo(f'running tables stats (tables=[{", ".join(tables)}]) ... ')
+def stats(ctx: CliContext, tables: list[str]) -> None:
+    api = ctx.upsolver_api()
+    stats_screen(
+        title='Table Stats',
+        headers=list(Table._fields),
+        get_values=lambda: [
+            t for t in api.get_jobs()
+            if (len(tables) == 0) or (t.name in tables)
+        ]
+    )
 
 
 @tables.command(help='Export a certain table as a "CREATE TABLEW" sql command that can be '
@@ -29,11 +39,11 @@ def stats(tables: list[str]) -> None:
 @click.pass_obj
 @click.argument('table', nargs=1)
 def export(ctx: CliContext, table: str) -> None:
-    echo(ctx.upsolver_api().export_table(table))
+    ctx.echo(ctx.upsolver_api().export_table(table))
 
 
 @tables.command(help='Display the partitions of a given table')
 @click.pass_obj
 @click.argument('table', nargs=1)
 def partitions(ctx: CliContext, table: str) -> None:
-    echo(ctx.upsolver_api().get_table_partitions(table))
+    ctx.write(ctx.upsolver_api().get_table_partitions(table))

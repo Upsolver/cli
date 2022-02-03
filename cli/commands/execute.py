@@ -3,9 +3,6 @@ from click import echo
 
 from cli.commands.context import CliContext
 
-# def formatify(input: str, input_fmt: str, desired_fmt: str) -> str:
-#     return input
-
 
 @click.command()
 @click.pass_obj
@@ -23,11 +20,15 @@ def execute(
     """
     Execute a single SQL query
     """
+    expression = expression.strip()
+    if expression == '-':
+        # TODO can't tell if stdin has input or not...
+        #  (use select? problems with Windows-compatbaility...)
+        expression = click.get_text_stream('stdin').read()
 
-    # echo(ctx.confman.conf.active_profile)
-    # TODO how to add support for running files
+    if len(expression) == 0:
+        return
 
-    # TODO format should be enum (idiomatic in python?)
     api = ctx.upsolver_api()
     if dry_run:
         check_result = api.check_syntax(expression)
@@ -39,12 +40,3 @@ def execute(
     else:
         result = api.execute(expression)
         ctx.write(result)
-
-        # # ctx.confman.conf.active_profile.output
-        #
-        # # TODO result is a string that is a json, will need to be converted to
-        # #  w/e format is requested
-        # formatted_result = formatify(result, input_fmt='json', desired_fmt=output_format)
-        #
-        # echo(f'executing command (output format: {output_format}) "{expression}"'
-        #      f' ...\nresult: {formatted_result}')
