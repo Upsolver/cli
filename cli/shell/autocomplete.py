@@ -11,11 +11,5 @@ class LspCompleter(Completer):
     def __init__(self, lsp: LspApi):
         self.lsp = lsp
 
-    _meta_commands: dict[str, str] = {
-        '!exit': 'Exit from the interactive UpSQL shell',
-        '!quit': 'Quit the interactive UpSQL shell',
-        '!help': 'Show Help',
-    }
-
     def get_completions(self, document: Document, complete_event: CompleteEvent) -> Iterable[Completion]:
         return self.lsp.get_completions(document)
