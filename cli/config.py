@@ -8,14 +8,15 @@ from typing import NamedTuple, Optional
 from yarl import URL
 
 from cli.errors import ConfigErr, ConfigReadFail, InternalErr
-from cli.formatters import Formatter, fmt_csv, fmt_json
+from cli.formatters import Formatter, fmt_csv, fmt_json, fmt_plain
 from cli.utils import ensure_exists, parse_url
 
 
 class OutputFmt(Enum):
     JSON = 1
     CSV = 2
-    TXT = 3
+    TSV = 3
+    PLAIN = 4
 
 
 class Profile(NamedTuple):
@@ -185,7 +186,11 @@ class ConfigurationManager(object):
         if desired_fmt == OutputFmt.JSON:
             return fmt_json
         elif desired_fmt == OutputFmt.CSV:
-            return fmt_csv
+            return fmt_csv()
+        elif desired_fmt == OutputFmt.TSV:
+            return fmt_csv(delimiter='\t')
+        elif desired_fmt == OutputFmt.PLAIN:
+            return fmt_plain
         else:
             raise InternalErr(f'Unsupported output format: {desired_fmt}')
 
