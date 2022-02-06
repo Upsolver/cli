@@ -24,7 +24,7 @@ from cli.upsolver.clusters import ClustersApi, RestClustersApi
 from cli.upsolver.entities import Catalog, Cluster, Job, Table, TablePartition
 from cli.upsolver.jobs import JobsApi, RestJobsApi
 from cli.upsolver.lexer import SimpleQueryLexer
-from cli.upsolver.lsp import LspApi, RestLspApi
+from cli.upsolver.lsp import FakeLspApi, LspApi
 from cli.upsolver.query import QueryApi, RestQueryApi
 from cli.upsolver.requester import Requester
 from cli.upsolver.tables import RestTablesApi, TablesApi
@@ -97,7 +97,7 @@ class CliContext(object):
         jobs: JobsApi = RestJobsApi(requester)
         tables: TablesApi = RestTablesApi(requester)
         queries: QueryApi = RestQueryApi(requester, SimpleQueryLexer())
-        lsp: LspApi = RestLspApi(requester)
+        lsp: LspApi = FakeLspApi()  # TODO
 
         class UpsolverApiImpl(UpsolverApi):
             def get_completions(self, doc: Document) -> list[Completion]:
