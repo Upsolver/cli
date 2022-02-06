@@ -15,7 +15,8 @@ from yarl import URL
 from cli.commands.root import root_command
 from cli.errors import ApiErr
 
-if __name__ == '__main__':
+
+def main() -> None:
     try:
         root_command()
     except ConnectionError as ex:
@@ -25,3 +26,7 @@ if __name__ == '__main__':
         echo(err=True, message='This command is not yet implemented')
     except ApiErr as ex:
         echo(err=True, message=f'Upsolver API error: {ex}')
+
+
+if __name__ == '__main__':
+    main()

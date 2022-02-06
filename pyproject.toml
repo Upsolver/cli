@@ -5,6 +5,9 @@ description = "Upsolver's CLI"
 authors = ["alexyavo <alex@upsolver.com>"]
 license = "MIT"
 
+[tool.poetry.scripts]
+upsolver = "cli.main:main"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 prompt-toolkit = "^3.0.24"
