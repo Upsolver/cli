@@ -9,7 +9,8 @@ from yarl import URL
 
 from cli.errors import ConfigErr, ConfigReadFail, InternalErr
 from cli.formatters import Formatter, fmt_csv, fmt_json, fmt_plain
-from cli.utils import ensure_exists, parse_url
+from cli.upsolver.requester import parse_url
+from cli.utils import ensure_exists
 
 
 class OutputFmt(Enum):

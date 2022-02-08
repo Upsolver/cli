@@ -13,7 +13,7 @@ from requests.exceptions import ConnectionError
 from yarl import URL
 
 from cli.commands.root import root_command
-from cli.errors import ApiErr
+from cli.errors import ApiErr, ConfigErr
 
 
 def main() -> None:
@@ -26,6 +26,8 @@ def main() -> None:
         echo(err=True, message='This command is not yet implemented')
     except ApiErr as ex:
         echo(err=True, message=f'Upsolver API error: {ex}')
+    except ConfigErr as ex:
+        echo(err=True, message=f'Configuration error: {ex}')
 
 
 if __name__ == '__main__':

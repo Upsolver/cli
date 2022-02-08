@@ -18,7 +18,7 @@ from cli.config import (
 )
 from cli.errors import ConfigErr
 from cli.upsolver.api import UpsolverApi
-from cli.upsolver.auth import AuthApi, RestAuthApi
+from cli.upsolver.auth import AuthApi, InvalidAuthApi, RestAuthApi
 from cli.upsolver.catalogs import CatalogsApi, RestCatalogsApi
 from cli.upsolver.clusters import ClustersApi, RestClustersApi
 from cli.upsolver.entities import Catalog, Cluster, Job, Table, TablePartition
@@ -26,7 +26,7 @@ from cli.upsolver.jobs import JobsApi, RestJobsApi
 from cli.upsolver.lexer import SimpleQueryLexer
 from cli.upsolver.lsp import FakeLspApi, LspApi
 from cli.upsolver.query import QueryApi, RestQueryApi
-from cli.upsolver.requester import Requester
+from cli.upsolver.requester import Requester, TokenAuthFiller
 from cli.upsolver.tables import RestTablesApi, TablesApi
 
 
@@ -86,12 +86,15 @@ class CliContext(object):
             get_auth_settings(self.confman.conf.active_profile)
 
         if auth_settings is None:
-            raise ConfigErr('Could not find authentication settings, please use the '
+            raise ConfigErr('could not find authentication settings, please use the '
                             '`configure` sub-command to generate them.')
 
-        auth: AuthApi = RestAuthApi(auth_settings.base_url)
-        requester = Requester(auth_settings.token, AuthApi.get_base_url(auth_settings))
+        requester = Requester(
+            base_url=Requester.get_base_url(auth_settings.base_url, auth_settings.token),
+            auth_filler=TokenAuthFiller(auth_settings.token)
+        )
 
+        auth: AuthApi = InvalidAuthApi()
         clusters: ClustersApi = RestClustersApi(requester)
         catalogs: CatalogsApi = RestCatalogsApi(requester)
         jobs: JobsApi = RestJobsApi(requester)

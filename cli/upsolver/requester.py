@@ -1,13 +1,106 @@
-from typing import Any
+import copy
+from abc import ABCMeta
+from typing import Any, Optional
 
-import requests
-from requests import Response
+from requests import Request, Response, Session
 from yarl import URL
 
-from cli.errors import ApiErr
+from cli.errors import ApiErr, PayloadErr
+from cli.ui import prompt_choose_dialog
+from cli.utils import NestedDictAccessor
 
 
-# TODO refactor
+class AuthFiller(metaclass=ABCMeta):
+    """
+    To issue requests to upsolver API there needs to be some sort of authentiation data present
+    on the request object. An implementation of AuthFiller takes a request object and returns a
+    modified request object, one that has the relevant authentication info.
+
+    Does not modify provided req object; returns modified copy.
+    """
+    def fill(self, req: Request) -> Request:
+        pass
+
+
+class CredsAuthFiller(AuthFiller):
+    EmailHeader = 'X-Api-Email'
+    PasswordHeader = 'X-Api-Password'
+
+    def __init__(self, email: str, password: str) -> None:
+        self.email = email
+        self.password = password
+
+    def fill(self, req: Request) -> Request:
+        assert req.headers.get(CredsAuthFiller.EmailHeader) is None
+        assert req.headers.get(CredsAuthFiller.PasswordHeader) is None
+        filled = copy.deepcopy(req)
+        filled.headers = filled.headers | {
+            CredsAuthFiller.EmailHeader: self.email,
+            CredsAuthFiller.PasswordHeader: self.password
+        }
+        return filled
+
+
+class TokenAuthFiller(AuthFiller):
+    TokenHeader = 'Authorization'
+
+    def __init__(self, token: str) -> None:
+        Request()
+        self.token = token
+
+    def fill(self, req: Request) -> Request:
+        assert req.headers.get(TokenAuthFiller.TokenHeader) is None
+        filled = copy.deepcopy(req)
+        filled.headers = filled.headers | {TokenAuthFiller.TokenHeader: self.token}
+        return filled
+
+
+class BetterResponse(object):
+    """
+    A wrapper around requests.Response object that adds some QoL methods.
+    """
+
+    def __init__(self, resp: Response):
+        self.resp = resp
+
+    def request_id(self) -> str:
+        try:
+            return self.resp.headers['x-api-requestid']
+        except KeyError:
+            raise ApiErr(f'API response has no request id header (headers={self.resp.headers})')
+
+    def __getattr__(self, attr: Any) -> Any:
+        return getattr(self.resp, attr)
+
+    def __getitem__(self, item: str) -> Any:
+        payload = self.resp.json()
+        try:
+            return NestedDictAccessor(payload)[item]
+        except KeyError:
+            raise PayloadErr(f'Failed to find {item} in response payload '
+                             f'(request id: {self.request_id()}): {payload}')
+
+    def get(self, item: str) -> Optional[Any]:
+        try:
+            return NestedDictAccessor(self.resp.json())[item]
+        except KeyError:
+            return None
+
+
+def parse_url(url: Optional[str]) -> Optional[URL]:
+    if url is None:
+        return None
+
+    burl = URL(url)
+    if burl.is_absolute():
+        return burl
+    else:
+        if url.startswith('localhost'):
+            return URL('http://' + url)
+        else:
+            return URL('https://' + url)
+
+
 class Requester(object):
     """
     A very thin wrapper around requests package that handles common errors and response
@@ -17,51 +110,80 @@ class Requester(object):
     aggregates common behavior around issuing requests and handling responses, as well as providing
     tailor-made API for cli code.
     """
-    def __init__(self, auth_token: str, base_url: URL):
-        self.auth_token = auth_token
-        self.base_url = base_url
+
+    @staticmethod
+    def get_base_url(base_url: URL, token: str) -> URL:
+        """
+        Retrieve base_url with which further API calls should be made.
+        """
+        requester = Requester(base_url=base_url, auth_filler=TokenAuthFiller(token))
+
+        user_info = requester.get('/users')
+        curr_org = user_info.get('currentOrganization')
+        if curr_org is None:
+            orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
+            if orgs is None or len(orgs) == 0:
+                raise ApiErr('No organizations available for user')
+
+            curr_org = prompt_choose_dialog(
+                'Choose active organization:',
+                [(org, org['displayData']['name']) for org in orgs]
+            )
+
+            requester.put(f'/users/organizations/{curr_org["id"]}')
+
+        return parse_url(requester.get('/environments/local-api')['dnsInfo.name'])
 
     @staticmethod
     def _normalize_path(path: str) -> str:
         return path if path.startswith('/') else f'/{path}'
 
+    def __init__(self, base_url: URL, auth_filler: AuthFiller):
+        self.base_url = base_url
+        self.auth_filler = auth_filler
+
+        # all requests will be issued using this one session
+        # a session object keeps track cookies, among other things, which are important
+        # for certain calls (e.g. getting base url for local api)
+        self.sess = Session()
+
     def _build_url(self, path: str) -> str:
         return f'{str(self.base_url)}{self._normalize_path(path)}'
 
-    def get(self, path: str) -> Response:
-        try:
-            return requests.get(
-                url=self._build_url(self._normalize_path(path)),
-                headers={'Authorization': self.auth_token}
-            )
-        except Exception as ex:
-            raise ApiErr(ex)
+    def _preprepare(self, req: Request) -> Request:
+        return self.auth_filler.fill(req)
 
-    def put(self, path: str) -> Response:
-        try:
-            return requests.put(
-                url=self._build_url(self._normalize_path(path)),
-                headers={'Authorization': self.auth_token}
-            )
-        except Exception as ex:
-            raise ApiErr(ex)
+    def _validate_response(self, resp: Response) -> Response:
+        is_invalid_resp = int(resp.status_code / 100) != 2
 
-    def post(self, path: str, json: dict[Any, Any]) -> Response:
-        try:
-            return requests.post(
-                url=self._build_url(self._normalize_path(path)),
-                headers={'Authorization': self.auth_token},
-                json=json
-            )
-        except Exception as ex:
-            raise ApiErr(ex)
+        if is_invalid_resp:
+            raise ApiErr(f'Error in API response '
+                         f'(status code={resp.status_code}, '
+                         f'request id={BetterResponse(resp).request_id()}): '
+                         f'{resp.json()}')
 
-    def patch(self, path: str, json: dict[Any, Any]) -> Response:
-        try:
-            return requests.post(
-                url=self._build_url(self._normalize_path(path)),
-                headers={'Authorization': self.auth_token},
-                json=json
-            )
-        except Exception as ex:
-            raise ApiErr(ex)
+        return resp
+
+    def _send(self,
+              path: str,
+              req: Request,
+              json: Optional[dict[Any, Any]] = None) -> BetterResponse:
+        req.url = self._build_url(self._normalize_path(path))
+        if json is not None:
+            req.json = json
+
+        return BetterResponse(self._validate_response(
+            self.sess.send(self.sess.prepare_request(self._preprepare(req)))
+        ))
+
+    def get(self, path: str) -> BetterResponse:
+        return self._send(path, Request(method='GET'))
+
+    def put(self, path: str) -> BetterResponse:
+        return self._send(path, Request(method='PUT'))
+
+    def post(self, path: str, json: dict[Any, Any]) -> BetterResponse:
+        return self._send(path, Request(method='POST'), json)
+
+    def patch(self, path: str, json: dict[Any, Any]) -> BetterResponse:
+        return self._send(path, Request(method='PATCH'), json)

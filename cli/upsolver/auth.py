@@ -2,13 +2,12 @@ import datetime
 from abc import ABCMeta, abstractmethod
 from typing import Any, Optional
 
-import requests
 from yarl import URL
 
-from cli.config import ProfileAuthSettings, parse_url
-from cli.errors import ApiErr
+from cli.config import ProfileAuthSettings
+from cli.errors import ApiErr, InternalErr
 from cli.ui import prompt_choose_dialog
-from cli.utils import get_payload
+from cli.upsolver.requester import CredsAuthFiller, Requester
 
 
 class AuthApi(metaclass=ABCMeta):
@@ -16,79 +15,53 @@ class AuthApi(metaclass=ABCMeta):
     def authenticate(self, email: str, password: str) -> ProfileAuthSettings:
         pass
 
-    @staticmethod
-    def get_base_url(auth_settings: ProfileAuthSettings) -> URL:
-        """
-        Retrieve base_url with to which further API calls should be made.
-        """
-        return parse_url(
-            get_payload(
-                'get base url for API calls',
-                requests.get(
-                    url=str(auth_settings.base_url / 'environments' / 'local-api'),
-                    headers={'Authorization': auth_settings.token}
-                )
-            )['dnsInfo']['name']
-        )
+
+class InvalidAuthApi(AuthApi):
+    """
+    This type is used to construct UpsolverApi implementations that are not expected to be able
+    to authenticate users. Since authentication and other api actions are currently separated,
+    it marks a logical error to authenticate outside configuration (i.e. auth token retrieval)
+    phase.
+    """
+    def authenticate(self, email: str, password: str) -> ProfileAuthSettings:
+        raise InternalErr('This is a mistake, fix me.')
 
 
 class RestAuthApi(AuthApi):
-    auth_base_url: URL
-
     """
     Responsible for performing authentication and holding up-to-date auth info
     required for making further calls to Upsolver API.
     """
 
-    def __init__(self, auth_base_url: URL) -> None:
-        assert auth_base_url.is_absolute()
-        self.auth_base_url = auth_base_url
+    def __init__(self, base_url: URL) -> None:
+        self.base_url = base_url
 
     def authenticate(self, email: str, password: str) -> ProfileAuthSettings:
-        with requests.Session() as s:
-            user_info = get_payload(
-                'retrieve user info',
-                s.get(
-                    url=str(self.auth_base_url / 'users'),
-                    headers={'X-Api-Email': email, 'X-Api-Password': password}
-                )
+        requester = Requester(self.base_url, CredsAuthFiller(email, password))
+
+        user_info = requester.get('/users')
+        curr_org = user_info.get('currentOrganization')
+
+        if curr_org is None:
+            orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
+            if orgs is None or len(orgs) == 0:
+                raise ApiErr(f'No organizations available for user {email}')
+
+            curr_org = prompt_choose_dialog(
+                'Choose active organization:',
+                [(org, org['displayData']['name']) for org in orgs]
             )
 
-            curr_org = user_info.get('currentOrganization')
-            if curr_org is None:
-                orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
-                if orgs is None or len(orgs) == 0:
-                    raise ApiErr(f'No organizations available for user {email}')
+            requester.put(f'/users/organizations/{curr_org["id"]}')
 
-                curr_org = prompt_choose_dialog(
-                    'Choose active organization:',
-                    [(org, org['displayData']['name']) for org in orgs]
-                )
+        api_token = requester.post(
+            path='/api-tokens',
+            json={
+                'displayData': {
+                    'name': f'apitoken-{email}-{datetime.datetime.now().timestamp()}',
+                    'description': 'CLI generated token'
+                }
+            }
+        )['apiToken']
 
-                get_payload(
-                    f'set {curr_org["displayData"]["name"]} as active organization',
-                    s.put(url=str(self.auth_base_url / 'users' / 'organizations' / curr_org['id']))
-                )
-
-            api_token = get_payload(
-                'generate API token',
-                s.post(
-                    url=str(self.auth_base_url / 'api-tokens'),
-                    json={
-                        'displayData': {
-                            'name': f'apitoken-{email}-{datetime.datetime.now().timestamp()}',
-                            'description': 'CLI generated token'
-                        }
-                    }
-                )
-            )['apiToken']
-
-            # TODO unify w/ get_base_url (the issue is i'm using Session here)
-            base_url = parse_url(
-                get_payload(
-                    'get base url for API calls',
-                    s.get(url=str(self.auth_base_url / 'environments' / 'local-api'))
-                )['dnsInfo']['name']
-            )
-
-            return ProfileAuthSettings(token=api_token, base_url=base_url)
+        return ProfileAuthSettings(token=api_token, base_url=self.base_url)

@@ -3,7 +3,7 @@ from typing import Optional
 import click
 
 from cli.commands.context import CliContext
-from cli.config import parse_url
+from cli.upsolver.requester import parse_url
 
 
 @click.command(help='Interactively configure CLI settings')

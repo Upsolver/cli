@@ -23,3 +23,7 @@ class ConfigReadFail(ConfigErr):
 
 class ApiErr(Exception):
     pass
+
+
+class PayloadErr(ApiErr):
+    pass

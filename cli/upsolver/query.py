@@ -2,11 +2,9 @@ import time
 from abc import ABCMeta, abstractmethod
 from typing import Any, Optional
 
-from requests import Response
-
 from cli.errors import ApiErr
 from cli.upsolver.lexer import QueryLexer
-from cli.upsolver.requester import Requester
+from cli.upsolver.requester import BetterResponse, Requester
 
 
 class QueryApi(metaclass=ABCMeta):
@@ -30,7 +28,7 @@ class Drainer(object):
         self.wait_interval_sec = wait_interval_sec
         self.max_time_sec = max_time_sec
 
-    def drain(self, resp: Response, time_spent_sec: float = 0) -> QueryApi.ExecutionResult:
+    def drain(self, resp: BetterResponse, time_spent_sec: float = 0) -> QueryApi.ExecutionResult:
         def raise_err() -> None:
             raise ApiErr(f'Query execution failed: '
                          f'status_code={resp.status_code}, '
