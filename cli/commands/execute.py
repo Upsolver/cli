@@ -1,7 +1,10 @@
+from typing import Optional
+
 import click
 from click import echo
 
 from cli.commands.context import CliContext
+from cli.formatters import Formatter, OutputFmt
 
 
 @click.command()
@@ -22,12 +25,16 @@ def execute(
     """
     expression = expression.strip()
     if expression == '-':
-        # TODO can't tell if stdin has input or not...
-        #  (use select? problems with Windows-compatbaility...)
-        expression = click.get_text_stream('stdin').read()
+        expression = click.get_text_stream('stdin').read().strip()
 
     if len(expression) == 0:
         return
+
+    fmt: Optional[Formatter] = None
+    try:
+        fmt = OutputFmt(output_format.lower()).get_formatter()
+    except ValueError:
+        pass
 
     api = ctx.upsolver_api()
     if dry_run:
@@ -39,4 +46,4 @@ def execute(
             echo("Expression is valid.")
     else:
         result = api.execute(expression)
-        ctx.write(result)
+        ctx.write(result, fmt)

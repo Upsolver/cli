@@ -2,7 +2,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from typing import Any, Optional
 
-from cli.errors import ApiErr
+from cli.errors import Timeout, api_err_from_resp
 from cli.upsolver.lexer import QueryLexer
 from cli.upsolver.requester import BetterResponse, Requester
 
@@ -30,9 +30,7 @@ class Drainer(object):
 
     def drain(self, resp: BetterResponse, time_spent_sec: float = 0) -> QueryApi.ExecutionResult:
         def raise_err() -> None:
-            raise ApiErr(f'Query execution failed: '
-                         f'status_code={resp.status_code}, '
-                         f'details={resp.json()}')
+            raise api_err_from_resp(resp)
 
         # TODO response is a list that always contains a single value?
         resp_json = resp.json()
@@ -58,7 +56,7 @@ class Drainer(object):
                     time_spent_sec=time_spent_sec + self.wait_interval_sec,
                 )
 
-            raise ApiErr('Timeout.')
+            raise Timeout()
 
         result = rjson['result']
         grid = result['grid']  # columns, data, ...

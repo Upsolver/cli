@@ -5,7 +5,7 @@ from typing import Any, Optional
 from yarl import URL
 
 from cli.config import ProfileAuthSettings
-from cli.errors import ApiErr, InternalErr
+from cli.errors import InternalErr, UserHasNoOrgs
 from cli.ui import prompt_choose_dialog
 from cli.upsolver.requester import CredsAuthFiller, Requester
 
@@ -45,7 +45,7 @@ class RestAuthApi(AuthApi):
         if curr_org is None:
             orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
             if orgs is None or len(orgs) == 0:
-                raise ApiErr(f'No organizations available for user {email}')
+                raise UserHasNoOrgs(email=email)
 
             curr_org = prompt_choose_dialog(
                 'Choose active organization:',

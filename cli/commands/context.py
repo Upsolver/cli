@@ -17,6 +17,7 @@ from cli.config import (
     get_auth_settings,
 )
 from cli.errors import ConfigErr
+from cli.formatters import Formatter
 from cli.upsolver.api import UpsolverApi
 from cli.upsolver.auth import AuthApi, InvalidAuthApi, RestAuthApi
 from cli.upsolver.catalogs import CatalogsApi, RestCatalogsApi
@@ -94,7 +95,7 @@ class CliContext(object):
             auth_filler=TokenAuthFiller(auth_settings.token)
         )
 
-        auth: AuthApi = InvalidAuthApi()
+        auth: AuthApi = InvalidAuthApi()  # i.e. should not be used.
         clusters: ClustersApi = RestClustersApi(requester)
         catalogs: CatalogsApi = RestCatalogsApi(requester)
         jobs: JobsApi = RestJobsApi(requester)
@@ -156,8 +157,15 @@ class CliContext(object):
 
         return UpsolverApiImpl()
 
-    def write(self, x: Any) -> None:
-        echo(message=self.confman.get_formatter()(x), file=sys.stdout)
+    def write(self, x: Any, fmt: Optional[Formatter] = None) -> None:
+        echo(
+            message=fmt(x) if fmt is not None else self.confman.get_formatter()(x),
+            file=sys.stdout
+        )
 
     def echo(self, msg: str) -> None:
         echo(msg)
+
+    def exit(self, msg: str, code: int) -> None:
+        echo(err=True, message=msg)
+        sys.exit(code)

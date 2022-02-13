@@ -5,7 +5,7 @@ from typing import Any, Optional
 from requests import Request, Response, Session
 from yarl import URL
 
-from cli.errors import ApiErr, PayloadErr
+from cli.errors import ApiErr, PayloadErr, UserHasNoOrgs
 from cli.ui import prompt_choose_dialog
 from cli.utils import NestedDictAccessor
 
@@ -67,7 +67,12 @@ class BetterResponse(object):
         try:
             return self.resp.headers['x-api-requestid']
         except KeyError:
-            raise ApiErr(f'API response has no request id header (headers={self.resp.headers})')
+            raise ApiErr(
+                status_code=self.resp.status_code,
+                request_id='',
+                payload=self.resp.text,
+                desc='API response has no request id header'
+            )
 
     def __getattr__(self, attr: Any) -> Any:
         return getattr(self.resp, attr)
@@ -77,8 +82,12 @@ class BetterResponse(object):
         try:
             return NestedDictAccessor(payload)[item]
         except KeyError:
-            raise PayloadErr(f'Failed to find {item} in response payload '
-                             f'(request id: {self.request_id()}): {payload}')
+            raise PayloadErr(
+                status_code=self.resp.status_code,
+                request_id=self.request_id(),
+                payload=self.resp.text,
+                desc=f'Failed to find {item} in response payload'
+            )
 
     def get(self, item: str) -> Optional[Any]:
         try:
@@ -123,7 +132,7 @@ class Requester(object):
         if curr_org is None:
             orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
             if orgs is None or len(orgs) == 0:
-                raise ApiErr('No organizations available for user')
+                raise UserHasNoOrgs()
 
             curr_org = prompt_choose_dialog(
                 'Choose active organization:',
@@ -157,10 +166,11 @@ class Requester(object):
         is_invalid_resp = int(resp.status_code / 100) != 2
 
         if is_invalid_resp:
-            raise ApiErr(f'Error in API response '
-                         f'(status code={resp.status_code}, '
-                         f'request id={BetterResponse(resp).request_id()}): '
-                         f'{resp.json()}')
+            raise ApiErr(
+                status_code=resp.status_code,
+                request_id=BetterResponse(resp).request_id(),
+                payload=resp.text
+            )
 
         return resp
 

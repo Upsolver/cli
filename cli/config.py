@@ -8,16 +8,9 @@ from typing import NamedTuple, Optional
 from yarl import URL
 
 from cli.errors import ConfigErr, ConfigReadFail, InternalErr
-from cli.formatters import Formatter, fmt_csv, fmt_json, fmt_plain
+from cli.formatters import DEFAULT_OUTPUT_FMT, Formatter, OutputFmt
 from cli.upsolver.requester import parse_url
 from cli.utils import ensure_exists
-
-
-class OutputFmt(Enum):
-    JSON = 1
-    CSV = 2
-    TSV = 3
-    PLAIN = 4
 
 
 class Profile(NamedTuple):
@@ -152,13 +145,19 @@ class ConfigurationManager(object):
                                 f'profile section should of the form: [profile.name] '
                                 f'(or [profile] for default profile)')
 
+            output_fmt = DEFAULT_OUTPUT_FMT
+            conf_fmt = confparser.get(profile_section, 'output', fallback=output_fmt.value).lower()
+            try:
+                output_fmt = OutputFmt(conf_fmt)
+            except ValueError:
+                raise ConfigErr(f'Invalid output format defined in "{profile_section}": {conf_fmt}')
+
             profiles.append(
-                # TODO handle KeyError exception of OutputFmt
                 Profile(
                     name=section_parts[1] if len(section_parts) > 1 else "default",
                     token=confparser.get(profile_section, 'token', fallback=None),
                     base_url=parse_url(confparser.get(profile_section, 'base_url', fallback=None)),
-                    output=OutputFmt[confparser.get(profile_section, 'output', fallback='JSON')]
+                    output=output_fmt
                 )
             )
 
@@ -183,17 +182,7 @@ class ConfigurationManager(object):
         self.conf = self._parse_conf_file(self.conf_path, profile, debug)
 
     def get_formatter(self) -> Formatter:
-        desired_fmt = self.conf.active_profile.output
-        if desired_fmt == OutputFmt.JSON:
-            return fmt_json
-        elif desired_fmt == OutputFmt.CSV:
-            return fmt_csv()
-        elif desired_fmt == OutputFmt.TSV:
-            return fmt_csv(delimiter='\t')
-        elif desired_fmt == OutputFmt.PLAIN:
-            return fmt_plain
-        else:
-            raise InternalErr(f'Unsupported output format: {desired_fmt}')
+        return self.conf.active_profile.output.get_formatter()
 
     def update_profile(self, profile: Profile) -> Config:
         """

@@ -1,5 +1,6 @@
 import csv
 import io
+from enum import Enum
 from typing import Any, Callable
 
 import simplejson as json
@@ -17,6 +18,28 @@ def to_dict(o: Any) -> dict[Any, Any]:
         return o
     else:
         raise InternalErr(f'{o} is not a dict')
+
+
+class OutputFmt(Enum):
+    JSON = 'json'
+    CSV = 'csv'
+    TSV = 'tsv'
+    PLAIN = 'plain'
+
+    def get_formatter(self) -> Formatter:
+        if self == OutputFmt.JSON:
+            return fmt_json
+        elif self == OutputFmt.CSV:
+            return fmt_csv()
+        elif self == OutputFmt.TSV:
+            return fmt_csv(delimiter='\t')
+        elif self == OutputFmt.PLAIN:
+            return fmt_plain
+        else:
+            raise InternalErr(f'Unsupported output format: {self}')
+
+
+DEFAULT_OUTPUT_FMT = OutputFmt.JSON
 
 
 def fmt_json(x: Any) -> str:

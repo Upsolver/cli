@@ -35,7 +35,7 @@ def root_command(
     debug: bool,
 ) -> None:
     """
-    This is Upsolver.
+    Upsolver CLI
     """
     # TODO currently ignored, unsure when or if we support these
     # clioptions = dict()

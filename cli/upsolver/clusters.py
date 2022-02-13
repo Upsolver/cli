@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import Any, Callable, Optional
 
-from cli.errors import BadArgument
+from cli.errors import ApiErr, ClusterNotFound
 from cli.upsolver.entities import Cluster
 from cli.upsolver.requester import Requester
 
@@ -32,6 +32,26 @@ class RestClustersApi(ClustersApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
+    def _get_cluster_id(self, cluster: str) -> str:
+        available_clusters = self.get_clusters()
+        for c in available_clusters:
+            if c.name == cluster:
+                return c.id
+
+        raise ClusterNotFound(cluster, available_clusters)
+
+    @staticmethod
+    def _handle_exceptions(operation: Callable[[], Any]) -> Optional[str]:
+        try:
+            operation()
+        except ClusterNotFound as ex:
+            return f'Failed to find cluster named \'{ex.cluster_name}\' among the following ' \
+                   f'list of clusters: {",".join([c.name for c in ex.existing_clusters])}'
+        except ApiErr as ex:
+            return ex.detail_message()
+
+        return None
+
     def get_clusters(self) -> list[Cluster]:
         environments = [
             dashboard_ele['environment']
@@ -54,30 +74,25 @@ class RestClustersApi(ClustersApi):
         """
         :return: A string detailing an error, or None if there were no errors
         """
-        self.requester.put(f'environments/stop/{cluster}')
-        return None  # TODO currently the call to put throws the error...
+        return self._handle_exceptions(
+            lambda: self.requester.put(f'environments/stop/{self._get_cluster_id(cluster)}')
+        )
 
     def run_cluster(self, cluster: str) -> Optional[str]:
         """
         :return: A string detailing an error, or None if there were no errors
         """
-        self.requester.put(f'environments/run/{cluster}')
-        return None  # TODO currently the call to put throws the error...
+        return self._handle_exceptions(
+            lambda: self.requester.put(f'environments/run/{self._get_cluster_id(cluster)}')
+        )
 
     def delete_cluster(self, cluster: str) -> Optional[str]:
         """
         :return: A string detailing an error, or None if there were no errors
         """
-        for c in self.get_clusters():
-            if c.name == cluster:
-                delete_resp = self.requester.patch(
-                    path=f'environments/{c.id}',
-                    json={'clazz': 'DeleteEnvironment'}
-                )
-
-                if delete_resp.status_code != 200:
-                    return f'Failed to delete cluster "{cluster}": {delete_resp.json()}'
-
-                return None
-
-        raise BadArgument(f'Could not find cluster named "{cluster}"')
+        return self._handle_exceptions(
+            lambda: self.requester.patch(
+                path=f'environments/{self._get_cluster_id(cluster)}',
+                json={'clazz': 'DeleteEnvironment'}
+            )
+        )
