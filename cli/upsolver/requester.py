@@ -1,5 +1,5 @@
 import copy
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from typing import Any, Optional
 
 from requests import Request, Response, Session
@@ -18,6 +18,7 @@ class AuthFiller(metaclass=ABCMeta):
 
     Does not modify provided req object; returns modified copy.
     """
+    @abstractmethod
     def fill(self, req: Request) -> Request:
         pass
 
@@ -147,14 +148,20 @@ class Requester(object):
     def _normalize_path(path: str) -> str:
         return path if path.startswith('/') else f'/{path}'
 
-    def __init__(self, base_url: URL, auth_filler: AuthFiller):
+    def __init__(self,
+                 base_url: URL,
+                 auth_filler: AuthFiller,
+                 session: Optional[Session] = None):
+        """
+        :param base_url: all requests will be issued to this host
+        :param auth_filler: will be used to modify Request objects prior to sending them in order to
+        fill in authentication-related data (e.g. Authorization header).
+        :param session: Requester uses a single session object to make requests with, and will use
+        the provided one if it's not None.
+        """
         self.base_url = base_url
         self.auth_filler = auth_filler
-
-        # all requests will be issued using this one session
-        # a session object keeps track cookies, among other things, which are important
-        # for certain calls (e.g. getting base url for local api)
-        self.sess = Session()
+        self.sess = Session() if session is None else session
 
     def _build_url(self, path: str) -> str:
         return f'{str(self.base_url)}{self._normalize_path(path)}'
