@@ -2,7 +2,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from typing import Any, Optional
 
-from cli.errors import Timeout, api_err_from_resp
+from cli.errors import ApiErr, Timeout
 from cli.upsolver.lexer import QueryLexer
 from cli.upsolver.requester import BetterResponse, Requester
 
@@ -30,7 +30,11 @@ class Drainer(object):
 
     def drain(self, resp: BetterResponse, time_spent_sec: float = 0) -> QueryApi.ExecutionResult:
         def raise_err() -> None:
-            raise api_err_from_resp(resp)
+            raise ApiErr(
+                status_code=resp.resp.status_code,
+                request_id=resp.request_id(),
+                payload=resp.text
+            )
 
         # TODO response is a list that always contains a single value?
         resp_json = resp.json()

@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional
 
 from cli.upsolver.entities import Cluster
-from cli.upsolver.requester import BetterResponse
 
 
 class InternalErr(Exception):
@@ -56,15 +55,6 @@ class ApiErr(Exception):
                 return self.payload
         except JSONDecodeError:
             return self.payload
-
-
-def api_err_from_resp(bresp: BetterResponse, desc: Optional[str] = None) -> ApiErr:
-    return ApiErr(
-        status_code=bresp.resp.status_code,
-        request_id=bresp.request_id(),
-        payload=bresp.text,
-        desc=desc
-    )
 
 
 class Timeout(Exception):
