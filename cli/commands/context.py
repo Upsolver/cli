@@ -26,7 +26,7 @@ from cli.upsolver.entities import Catalog, Cluster, Job, Table, TablePartition
 from cli.upsolver.jobs import JobsApi, RestJobsApi
 from cli.upsolver.lexer import QueryLexer, SimpleQueryLexer
 from cli.upsolver.lsp import FakeLspApi, LspApi
-from cli.upsolver.query import ExecutionResult, QueryApi, ResponsePoller, RestQueryApi
+from cli.upsolver.query import ExecutionResult, QueryApi, RestQueryApi, SimpleResponsePoller
 from cli.upsolver.requester import Requester, TokenAuthFiller
 from cli.upsolver.tables import RestTablesApi, TablesApi
 
@@ -36,11 +36,12 @@ class CliContext(object):
     This is used as the value for click.Context object that is passed to subcommands.
 
     CliContext holds "global" information (e.g. configuration) and is capable of spawning
-    entities that depend on this configuration (e.g. upsolver upsolver).
+    entities that depend on this configuration.
 
     Also serves as the builder of UpsolverApi from more basic api components.
 
-    Reasoning for having two builder methods, one for auth api and another for whole upsolver api:
+    Reasoning behind having two API builder methods, one for auth api and another one for the
+    "whole" upsolver api:
     all api components depend on authentication api, and so we need to instantiate it before all
     others and use it, and with the results of calling it we are able to construct the other
     components.
@@ -103,7 +104,7 @@ class CliContext(object):
         catalogs: CatalogsApi = RestCatalogsApi(requester)
         jobs: JobsApi = RestJobsApi(requester)
         tables: TablesApi = RestTablesApi(requester)
-        queries: QueryApi = RestQueryApi(requester, ResponsePoller())
+        queries: QueryApi = RestQueryApi(requester, SimpleResponsePoller())
         lsp: LspApi = FakeLspApi()  # TODO
 
         class UpsolverApiImpl(UpsolverApi):

@@ -1,6 +1,6 @@
 import time
 from abc import ABCMeta, abstractmethod
-from typing import Any, Iterator, Optional
+from typing import Any, Callable, Iterator, Optional
 
 from cli import errors
 from cli.upsolver.requester import BetterResponse, Requester
@@ -25,7 +25,13 @@ class QueryApi(metaclass=ABCMeta):
         pass
 
 
-class ResponsePoller(object):
+ResponsePoller = Callable[
+    [Requester, BetterResponse],
+    tuple[ExecutionResult, Optional[NextResultPath]]
+]
+
+
+class SimpleResponsePoller(object):
     """
     Polling is performed on responses that are "pending": we don't know when the results will be
     available and so the Poller's job is to wait until the results are ready.
@@ -84,7 +90,7 @@ class ResponsePoller(object):
 
         return data_w_columns, result.get('next')
 
-    def get_result(self, requester: Requester, resp: BetterResponse) -> \
+    def __call__(self, requester: Requester, resp: BetterResponse) -> \
             tuple[ExecutionResult, Optional[NextResultPath]]:
         """
         Waits until result data is ready and returns it (a response may contain actual data, or
@@ -107,16 +113,15 @@ class RestQueryApi(QueryApi):
 
     _NextResultPath = str  # results are paged, with "next pointer" being a path of url
 
-    def _get_result(self, resp: BetterResponse) -> \
-            tuple[ExecutionResult, Optional[NextResultPath]]:
-        return self.poller.get_result(self.requester, resp)
-
     def execute(self, query: str) -> Iterator[ExecutionResult]:
         assert len(query) > 0
 
-        (data, next_path) = self._get_result(self.requester.post('query', json={'sql': query}))
+        (data, next_path) = self.poller(
+            self.requester,
+            self.requester.post('query', json={'sql': query})
+        )
         yield data
 
         while next_path is not None:
-            (data, next_path) = self._get_result(self.requester.get(next_path))
+            (data, next_path) = self.poller(self.requester, self.requester.get(next_path))
             yield data

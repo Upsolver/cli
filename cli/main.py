@@ -19,7 +19,7 @@ def main() -> None:
         root_command()
     except ConnectionError as ex:
         url = URL(ex.request.url)
-        echo(err=True, message=f'Connection to \'{url.host}:{url.port}\' failed...')
+        exit_with(errors.ExitCode.NetworkErr, f'Connection to \'{url.host}:{url.port}\' failed...')
     except NotImplementedError:
         exit_with(errors.ExitCode.InternalErr, 'This command is not yet implemented')
     except errors.CliErr as ex:
