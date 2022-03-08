@@ -1,7 +1,7 @@
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterator, Optional
 
 from click import echo
 from prompt_toolkit.completion import Completion
@@ -24,9 +24,9 @@ from cli.upsolver.catalogs import CatalogsApi, RestCatalogsApi
 from cli.upsolver.clusters import ClustersApi, RestClustersApi
 from cli.upsolver.entities import Catalog, Cluster, Job, Table, TablePartition
 from cli.upsolver.jobs import JobsApi, RestJobsApi
-from cli.upsolver.lexer import SimpleQueryLexer
+from cli.upsolver.lexer import QueryLexer, SimpleQueryLexer
 from cli.upsolver.lsp import FakeLspApi, LspApi
-from cli.upsolver.query import QueryApi, RestQueryApi
+from cli.upsolver.query import ExecutionResult, QueryApi, ResponsePoller, RestQueryApi
 from cli.upsolver.requester import Requester, TokenAuthFiller
 from cli.upsolver.tables import RestTablesApi, TablesApi
 
@@ -75,6 +75,9 @@ class CliContext(object):
         self.confman = confman
         self._setup_logging(self.confman.conf)
 
+    def query_lexer(self) -> QueryLexer:
+        return SimpleQueryLexer()
+
     def auth_api(self, auth_base_url: Optional[URL] = None) -> AuthApi:
         if auth_base_url is None:
             auth_base_url = ConfigurationManager.CLI_DEFAULT_BASE_URL
@@ -100,7 +103,7 @@ class CliContext(object):
         catalogs: CatalogsApi = RestCatalogsApi(requester)
         jobs: JobsApi = RestJobsApi(requester)
         tables: TablesApi = RestTablesApi(requester)
-        queries: QueryApi = RestQueryApi(requester, SimpleQueryLexer())
+        queries: QueryApi = RestQueryApi(requester, ResponsePoller())
         lsp: LspApi = FakeLspApi()  # TODO
 
         class UpsolverApiImpl(UpsolverApi):
@@ -113,7 +116,7 @@ class CliContext(object):
             def check_syntax(self, expression: str) -> list[str]:
                 return queries.check_syntax(expression)
 
-            def execute(self, query: str) -> list[dict[Any, Any]]:
+            def execute(self, query: str) -> Iterator[ExecutionResult]:
                 return queries.execute(query)
 
             def get_tables(self) -> list[Table]:
@@ -140,14 +143,14 @@ class CliContext(object):
             def export_cluster(self, cluster: str) -> str:
                 return clusters.export_cluster(cluster)
 
-            def stop_cluster(self, cluster: str) -> Optional[str]:
-                return clusters.stop_cluster(cluster)
+            def stop_cluster(self, cluster: str) -> None:
+                clusters.stop_cluster(cluster)
 
-            def run_cluster(self, cluster: str) -> Optional[str]:
-                return clusters.run_cluster(cluster)
+            def run_cluster(self, cluster: str) -> None:
+                clusters.run_cluster(cluster)
 
-            def delete_cluster(self, cluster: str) -> Optional[str]:
-                return clusters.delete_cluster(cluster)
+            def delete_cluster(self, cluster: str) -> None:
+                clusters.delete_cluster(cluster)
 
             def get_clusters(self) -> list[Cluster]:
                 return clusters.get_clusters()

@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+from cli import errors
 from cli.upsolver.entities import Table, TablePartition
 from cli.upsolver.requester import Requester
 
@@ -32,7 +33,7 @@ class RestTablesApi(TablesApi):
         ]
 
     def export_table(self, table: str) -> str:
-        raise NotImplementedError()
+        raise errors.NotImplementedErr()
 
     def get_table_partitions(self, table: str) -> list[TablePartition]:
         for raw_table in self.requester.get('tables').json():

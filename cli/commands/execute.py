@@ -45,5 +45,6 @@ def execute(
         else:
             echo("Expression is valid.")
     else:
-        result = api.execute(expression)
-        ctx.write(result, fmt)
+        for q in ctx.query_lexer().split(expression):
+            for res in api.execute(q):
+                ctx.write(res, fmt)

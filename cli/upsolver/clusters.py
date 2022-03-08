@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, Optional
 
-from cli.errors import ApiErr, ClusterNotFound
+from cli import errors
 from cli.upsolver.entities import Cluster
 from cli.upsolver.requester import Requester
 
@@ -16,15 +15,15 @@ class ClustersApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def stop_cluster(self, cluster: str) -> Optional[str]:
+    def stop_cluster(self, cluster: str) -> None:
         pass
 
     @abstractmethod
-    def run_cluster(self, cluster: str) -> Optional[str]:
+    def run_cluster(self, cluster: str) -> None:
         pass
 
     @abstractmethod
-    def delete_cluster(self, cluster: str) -> Optional[str]:
+    def delete_cluster(self, cluster: str) -> None:
         pass
 
 
@@ -38,19 +37,7 @@ class RestClustersApi(ClustersApi):
             if c.name == cluster:
                 return c.id
 
-        raise ClusterNotFound(cluster, available_clusters)
-
-    @staticmethod
-    def _handle_exceptions(operation: Callable[[], Any]) -> Optional[str]:
-        try:
-            operation()
-        except ClusterNotFound as ex:
-            return f'Failed to find cluster named \'{ex.cluster_name}\' among the following ' \
-                   f'list of clusters: {",".join([c.name for c in ex.existing_clusters])}'
-        except ApiErr as ex:
-            return ex.detail_message()
-
-        return None
+        raise errors.ClusterNotFound(cluster, available_clusters)
 
     def get_clusters(self) -> list[Cluster]:
         environments = [
@@ -70,29 +57,14 @@ class RestClustersApi(ClustersApi):
     def export_cluster(self, cluster: str) -> str:
         raise NotImplementedError()
 
-    def stop_cluster(self, cluster: str) -> Optional[str]:
-        """
-        :return: A string detailing an error, or None if there were no errors
-        """
-        return self._handle_exceptions(
-            lambda: self.requester.put(f'environments/stop/{self._get_cluster_id(cluster)}')
-        )
+    def stop_cluster(self, cluster: str) -> None:
+        self.requester.put(f'environments/stop/{self._get_cluster_id(cluster)}')
 
-    def run_cluster(self, cluster: str) -> Optional[str]:
-        """
-        :return: A string detailing an error, or None if there were no errors
-        """
-        return self._handle_exceptions(
-            lambda: self.requester.put(f'environments/run/{self._get_cluster_id(cluster)}')
-        )
+    def run_cluster(self, cluster: str) -> None:
+        self.requester.put(f'environments/run/{self._get_cluster_id(cluster)}')
 
-    def delete_cluster(self, cluster: str) -> Optional[str]:
-        """
-        :return: A string detailing an error, or None if there were no errors
-        """
-        return self._handle_exceptions(
-            lambda: self.requester.patch(
-                path=f'environments/{self._get_cluster_id(cluster)}',
-                json={'clazz': 'DeleteEnvironment'}
-            )
+    def delete_cluster(self, cluster: str) -> None:
+        self.requester.patch(
+            path=f'environments/{self._get_cluster_id(cluster)}',
+            json={'clazz': 'DeleteEnvironment'}
         )

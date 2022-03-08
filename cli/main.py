@@ -1,11 +1,17 @@
 #!/usr/bin/env python
+import sys
 
 from click import echo
 from requests.exceptions import ConnectionError
 from yarl import URL
 
+from cli import errors
 from cli.commands.root import root_command
-from cli.errors import ApiErr, ConfigErr
+
+
+def exit_with(code: errors.ExitCode, msg: str) -> None:
+    echo(err=True, message=msg)
+    sys.exit(code.value)
 
 
 def main() -> None:
@@ -15,11 +21,9 @@ def main() -> None:
         url = URL(ex.request.url)
         echo(err=True, message=f'Connection to \'{url.host}:{url.port}\' failed...')
     except NotImplementedError:
-        echo(err=True, message='This command is not yet implemented')
-    except ApiErr as ex:
-        echo(err=True, message=f'{ex}')
-    except ConfigErr as ex:
-        echo(err=True, message=f'Configuration error: {ex}')
+        exit_with(errors.ExitCode.InternalErr, 'This command is not yet implemented')
+    except errors.CliErr as ex:
+        exit_with(ex.exit_code(), str(ex))
 
 
 if __name__ == '__main__':

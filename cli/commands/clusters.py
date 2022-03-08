@@ -1,9 +1,6 @@
-from typing import Optional
-
 import click
 
 from cli.commands.context import CliContext
-from cli.errors import ExitCodes
 from cli.ui import stats_screen
 from cli.upsolver.entities import Cluster
 
@@ -45,27 +42,22 @@ def export(ctx: CliContext, cluster: str) -> None:
     ctx.echo(ctx.upsolver_api().export_cluster(cluster))
 
 
-def handle_err_str(ctx: CliContext, err: Optional[str]) -> None:
-    if err is not None:
-        ctx.exit(msg=err, code=ExitCodes.GeneralError.value)
-
-
 @clusters.command(help='Stop a cluster')
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def stop(ctx: CliContext, cluster: str) -> None:
-    handle_err_str(ctx, ctx.upsolver_api().stop_cluster(cluster))
+    ctx.upsolver_api().stop_cluster(cluster)
 
 
 @clusters.command(help='Run a cluster')
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def run(ctx: CliContext, cluster: str) -> None:
-    handle_err_str(ctx, ctx.upsolver_api().run_cluster(cluster))
+    ctx.upsolver_api().run_cluster(cluster)
 
 
 @clusters.command(help='Delete a cluster')
 @click.pass_obj
 @click.argument('cluster', nargs=1)
 def rm(ctx: CliContext, cluster: str) -> None:
-    handle_err_str(ctx, ctx.upsolver_api().delete_cluster(cluster))
+    ctx.upsolver_api().delete_cluster(cluster)

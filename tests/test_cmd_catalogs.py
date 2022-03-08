@@ -4,24 +4,19 @@ from unittest.mock import patch
 from click.testing import CliRunner
 from pytest_mock import MockerFixture
 
-from cli import __version__
 from cli.commands.catalogs import catalogs
 from cli.commands.context import CliContext
 from cli.config import ConfigurationManager
-from cli.errors import ApiErr
-from cli.upsolver import Catalog
-
-
-def test_version():
-    assert __version__ == '0.1.0'
+from cli.errors import ConfigErr
+from cli.upsolver.entities import Catalog
 
 
 def test_catalogs_ls_no_auth(tmp_path: Path) -> None:
-    ctx = CliContext(ConfigurationManager(tmp_path / 'conf'))
+    conf_path = tmp_path / 'conf'
+    ctx = CliContext(ConfigurationManager(conf_path))
     runner = CliRunner()
     result = runner.invoke(catalogs, ['ls'], obj=ctx)
-    assert isinstance(result.exception, ApiErr)
-    assert 'Missing auth' in str(result.exception)
+    assert isinstance(result.exception, ConfigErr)
 
 
 def test_catalogs_ls(mocker: MockerFixture, tmp_path: Path) -> None:
@@ -46,7 +41,3 @@ output = JSON''')
         result = runner.invoke(catalogs, ['ls'], obj=ctx)
         api.get_catalogs.assert_called_once()
         assert result.stdout == ctx.confman.get_formatter()(c) + '\n'
-
-
-def test_catalogs_ls_csv():
-    pass

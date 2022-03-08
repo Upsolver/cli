@@ -1,17 +1,23 @@
 import time
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional
+from typing import Any, Iterator, Optional
 
-from cli.errors import ApiErr, Timeout
-from cli.upsolver.lexer import QueryLexer
+from cli import errors
 from cli.upsolver.requester import BetterResponse, Requester
+
+ExecutionResult = list[dict[Any, Any]]
+ExecutionErr = Exception
+NextResultPath = str  # results are paged, with "next pointer" being a path of url
 
 
 class QueryApi(metaclass=ABCMeta):
-    ExecutionResult = list[dict[Any, Any]]
-
     @abstractmethod
-    def execute(self, query: str) -> ExecutionResult:
+    def execute(self, query: str) -> Iterator[ExecutionResult]:
+        """
+        :param query: a singular SQL statement (i.e. multiple statements separated by ';' are not
+        supported by this interface)
+        :return: since queries may result in large responses, they are returned in chunks.
+        """
         pass
 
     @abstractmethod
@@ -19,29 +25,36 @@ class QueryApi(metaclass=ABCMeta):
         pass
 
 
-class Drainer(object):
+class ResponsePoller(object):
+    """
+    Polling is performed on responses that are "pending": we don't know when the results will be
+    available and so the Poller's job is to wait until the results are ready.
+    """
     def __init__(self,
-                 requester: Requester,
                  wait_interval_sec: float = 0.5,
-                 max_time_sec: Optional[float] = None):
-        self.requester = requester
+                 max_time_sec: Optional[float] = 10.0):
         self.wait_interval_sec = wait_interval_sec
         self.max_time_sec = max_time_sec
 
-    def drain(self, resp: BetterResponse, time_spent_sec: float = 0) -> QueryApi.ExecutionResult:
+    def _get_result_helper(self,
+                           requester: Requester,
+                           resp: BetterResponse,
+                           time_spent_sec: float = 0) -> \
+            tuple[ExecutionResult, Optional[NextResultPath]]:
+        """
+        :param time_spent_sec: this method is called recursively, with time_spent_sec parameter
+          accumulating total time spent waiting for the response to become "ready" (i.e. to get a
+          response with actual data).
+        """
         def raise_err() -> None:
-            raise ApiErr(
-                status_code=resp.resp.status_code,
-                request_id=resp.request_id(),
-                payload=resp.text
-            )
+            raise errors.ApiErr(resp)
 
-        # TODO response is a list that always contains a single value?
-        resp_json = resp.json()
-        rjson = resp_json[0] if type(resp_json) is list else resp_json
         sc = resp.status_code
         if int(sc / 100) != 2:
             raise_err()
+
+        resp_json = resp.json()
+        rjson = resp_json[0] if type(resp_json) is list else resp_json
 
         status = rjson['status']
         is_success = sc == 200 and status == 'Success'
@@ -49,57 +62,61 @@ class Drainer(object):
         # 201 is CREATED; returned on initial creation of "pending" response
         # 202 is ACCEPTED; returned if existing pending query is still not ready
         is_pending = (sc == 201 or sc == 202) and status == 'Pending'
+
         if not (is_success or is_pending):
             raise_err()
 
         if is_pending:
-            while (self.max_time_sec is None) or time_spent_sec < self.max_time_sec:
-                time.sleep(self.wait_interval_sec)
-                return self.drain(
-                    resp=self.requester.get(path=rjson['current']),
-                    time_spent_sec=time_spent_sec + self.wait_interval_sec,
-                )
+            if (self.max_time_sec is not None) and (time_spent_sec >= self.max_time_sec):
+                raise errors.PendingResultTimeout(resp)
 
-            raise Timeout()
+            time.sleep(self.wait_interval_sec)
+            return self._get_result_helper(
+                requester=requester,
+                resp=requester.get(path=rjson['current']),
+                time_spent_sec=time_spent_sec + self.wait_interval_sec,
+            )
 
         result = rjson['result']
         grid = result['grid']  # columns, data, ...
         column_names = [c['name'] for c in grid['columns']]
-        data_w_columns = [dict(zip(column_names, row)) for row in grid['data']]
-        next_result: str = result.get('next')
-        return data_w_columns + (
-            [] if next_result is None
-            else self.drain(
-                resp=self.requester.get(path=next_result),
-                time_spent_sec=time_spent_sec
-            )
-        )
+        data_w_columns: ExecutionResult = [dict(zip(column_names, row)) for row in grid['data']]
+
+        return data_w_columns, result.get('next')
+
+    def get_result(self, requester: Requester, resp: BetterResponse) -> \
+            tuple[ExecutionResult, Optional[NextResultPath]]:
+        """
+        Waits until result data is ready and returns it (a response may contain actual data, or
+        alternatively be a pending response which means we should ask for the results at some
+        later, inderteminate, time).
+
+        If the second returned value is not None, it means there is more result data that can
+        be delivered, and can be retrieved using the returned path.
+        """
+        return self._get_result_helper(requester, resp)
 
 
 class RestQueryApi(QueryApi):
-    def __init__(self, requester: Requester, lexer: QueryLexer):
+    def __init__(self, requester: Requester, poller: ResponsePoller):
         self.requester = requester
-        self.lexer = lexer
+        self.poller = poller
 
     def check_syntax(self, expression: str) -> list[str]:
         raise NotImplementedError()
 
-    def execute(self, query: str) -> QueryApi.ExecutionResult:
-        assert len(query) > 0
-        drainer = Drainer(requester=self.requester, max_time_sec=10.0)
-        results: list[tuple[str, QueryApi.ExecutionResult]] = []
-        for q in self.lexer.split(query):
-            results.append(
-                (
-                    q,
-                    drainer.drain(self.requester.post('query', json={'sql': q}))
-                )
-            )
+    _NextResultPath = str  # results are paged, with "next pointer" being a path of url
 
-        if len(results) > 1:
-            return [
-                {'query': q, 'result': res}
-                for (q, res) in results
-            ]
-        else:
-            return results[0][1]
+    def _get_result(self, resp: BetterResponse) -> \
+            tuple[ExecutionResult, Optional[NextResultPath]]:
+        return self.poller.get_result(self.requester, resp)
+
+    def execute(self, query: str) -> Iterator[ExecutionResult]:
+        assert len(query) > 0
+
+        (data, next_path) = self._get_result(self.requester.post('query', json={'sql': query}))
+        yield data
+
+        while next_path is not None:
+            (data, next_path) = self._get_result(self.requester.get(next_path))
+            yield data

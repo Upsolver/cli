@@ -5,7 +5,7 @@ from typing import Any, Optional
 from requests import Request, Response, Session
 from yarl import URL
 
-from cli.errors import ApiErr, PayloadErr, UserHasNoOrgs
+from cli import errors
 from cli.ui import prompt_choose_dialog
 from cli.utils import NestedDictAccessor
 
@@ -64,18 +64,13 @@ class BetterResponse(object):
     def __init__(self, resp: Response):
         self.resp = resp
 
-    def request_id(self) -> str:
-        try:
-            return self.resp.headers['x-api-requestid']
-        except KeyError:
-            raise ApiErr(
-                status_code=self.resp.status_code,
-                request_id='',
-                payload=self.resp.text,
-                desc='API response has no request id header'
-            )
+    def request_id(self) -> Optional[str]:
+        return self.resp.headers.get('x-api-requestid')
 
     def __getattr__(self, attr: Any) -> Any:
+        """
+        BetterResponse is fully transparent proxy to actual Response object
+        """
         return getattr(self.resp, attr)
 
     def __getitem__(self, item: str) -> Any:
@@ -83,12 +78,7 @@ class BetterResponse(object):
         try:
             return NestedDictAccessor(payload)[item]
         except KeyError:
-            raise PayloadErr(
-                status_code=self.resp.status_code,
-                request_id=self.request_id(),
-                payload=self.resp.text,
-                desc=f'Failed to find {item} in response payload'
-            )
+            raise errors.PayloadPathKeyErr(self, item)
 
     def get(self, item: str) -> Optional[Any]:
         try:
@@ -133,7 +123,7 @@ class Requester(object):
         if curr_org is None:
             orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
             if orgs is None or len(orgs) == 0:
-                raise UserHasNoOrgs()
+                raise errors.UserHasNoOrgs()
 
             curr_org = prompt_choose_dialog(
                 'Choose active organization:',
@@ -173,11 +163,7 @@ class Requester(object):
         is_invalid_resp = int(resp.status_code / 100) != 2
 
         if is_invalid_resp:
-            raise ApiErr(
-                status_code=resp.status_code,
-                request_id=BetterResponse(resp).request_id(),
-                payload=resp.text
-            )
+            raise errors.ApiErr(BetterResponse(resp))
 
         return resp
 
