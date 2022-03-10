@@ -2,7 +2,10 @@ name: test-actions
 on: [push]
 jobs:
   test-job-name:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-latest, macos-lastest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
