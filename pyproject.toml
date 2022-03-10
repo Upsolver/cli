@@ -30,6 +30,8 @@ types-requests = "^2.27.3"
 pytest-mock = "^3.6.1"
 types-simplejson = "^3.17.3"
 requests-mock = "^1.9.3"
+homebrew-pypi-poet = "^0.10.0"
+toml = "^0.10.2"
 
 [tool.isort]
 multi_line_output = 3

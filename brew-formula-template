@@ -1,0 +1,22 @@
+class UpsolverCli < Formula
+  include Language::Python::Virtualenv
+
+  desc "CLI for Upsolver with auto-completion and syntax highlighting"
+  homepage "https://upsolver.com/"
+  url "$url"
+  sha256 "$url_sha256"
+  license "BSD-3-Clause"
+
+  depends_on "poetry" => :build
+  depends_on "python@3.10"
+
+$resources
+
+  def install
+    virtualenv_install_with_resources
+  end
+
+  test do
+    system bin/"upsolver", "--help"
+  end
+end
