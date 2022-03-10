@@ -15,7 +15,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install poetry==${{ matrix.poetry-version }}
       - run: poetry install
-      - run: poetry run python genformula.py
+      - run: poetry run python genformula.py --compute-hash-from-build
 
   test-job-name:
     strategy:
