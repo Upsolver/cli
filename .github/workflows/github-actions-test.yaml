@@ -1,7 +1,7 @@
 name: test-actions
 on: [push]
 jobs:
-  gen-formula:
+  setup:
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -15,21 +15,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install poetry==${{ matrix.poetry-version }}
       - run: poetry install
+
+  gen-formula:
+    needs: setup
+    steps:
       - run: poetry run python genformula.py --compute-hash-from-build
 
   test-job-name:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.10.x]
-        poetry-version: [1.1.13]
-    runs-on: ${{ matrix.os }}
+    needs: setup
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - run: pwd && ls -alh
-      - run: pip install poetry==${{ matrix.poetry-version }}
-      - run: poetry install
-#      - run: poetry run python -m pytest tests
+      - run: poetry run python -m pytest tests
