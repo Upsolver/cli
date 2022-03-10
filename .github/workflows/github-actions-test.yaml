@@ -1,12 +1,13 @@
 name: test-actions
 on: [push]
 jobs:
+  strategy:
+    matrix:
+      os: [ubuntu-latest]
+      python-version: [3.10.x]
+      poetry-version: [1.1.13]
+
   setup:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.10.x]
-        poetry-version: [1.1.13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
