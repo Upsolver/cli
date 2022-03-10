@@ -13,10 +13,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - run: |
-          pwd && ls -alh
-      - run: |
-          pip install poetry==${{ matrix.poetry-version }}
+      - run: pwd && ls -alh
+      - run: pip install poetry==${{ matrix.poetry-version }}
       - run: poetry install
-      - run: poetry shell
       - run: poetry run python -m pytest tests
