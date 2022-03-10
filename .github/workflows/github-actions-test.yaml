@@ -18,10 +18,12 @@ jobs:
 
   gen-formula:
     needs: setup
+    runs-on: ${{ matrix.os }}
     steps:
       - run: poetry run python genformula.py --compute-hash-from-build
 
   test-job-name:
     needs: setup
+    runs-on: ${{ matrix.os }}
     steps:
       - run: poetry run python -m pytest tests
