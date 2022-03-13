@@ -46,10 +46,10 @@ jobs:
           asset_content_type: application/tar+gz
 
       - name: Generate homebrew formula
-        runs: poetry python scripts/gen-brew-formula.py --cli-archive-url ${{ steps.create_release.outputs.upload_url }}
+        run: poetry python scripts/gen-brew-formula.py --cli-archive-url ${{ steps.create_release.outputs.upload_url }}
 
       - name: Commit updated homebrew formula
-        runs: |
+        run: |
           git config --local user.email "release-bot@github.com"
           git config --local user.name "GitHub Release Bot"
           git add ./Formula/upsolver-cli.rb
