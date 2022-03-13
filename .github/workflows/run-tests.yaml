@@ -18,5 +18,6 @@ jobs:
 
   run-tests:
     needs: setup
+    runs-on: ${{ matrix.os }}
     steps:
       - run: poetry run python -m pytest tests
