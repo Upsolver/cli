@@ -33,7 +33,6 @@ jobs:
           pip install poetry==1.1.13
           poetry install
           poetry build
-          echo $(poetry run python scripts/echo-version.py)
           echo "::set-output name=version::$(poetry run python scripts/echo-version.py)"
 
       - name: Upload Release Asset
@@ -45,3 +44,14 @@ jobs:
           asset_path: ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
           asset_name: cli-${{ steps.build-archive.outputs.version }}.tar.gz
           asset_content_type: application/tar+gz
+
+      - name: Generate homebrew formula
+        runs: poetry python scripts/gen-brew-formula.py --cli-archive-url ${{ steps.create_release.outputs.upload_url }}
+
+      - name: Commit updated homebrew formula
+        runs: |
+          git config --local user.email "release-bot@github.com"
+          git config --local user.name "GitHub Release Bot"
+          git add ./Formula/upsolver-cli.rb
+          git commit -m "updated homebrew formula"
+          git push -u origin $(eval git branch --show-current)

@@ -18,7 +18,7 @@ DEFAULT_ARCHIVE_URL = f'https://github.com/Upsolver/cli/releases/download/stable
 @click.option('--cli-archive-url', default=DEFAULT_ARCHIVE_URL)
 @click.option('--compute-hash-from-build', default=False, is_flag=True)
 @click.option('--poetry-lock-path', default=str(Path.cwd() / 'poetry.lock'))
-@click.option('--formula-template-path', default=str(Path.cwd() / 'brew-formula-template'))
+@click.option('--formula-template-path', default=str(Path.cwd() / 'scripts/upsolver-cli.rb.template'))
 @click.option('--formula-out-path', default=str(Path.cwd() / 'Formula/upsolver-cli.rb'))
 def generate_brew_formula(cli_archive_url: str,
                           compute_hash_from_build: bool,
