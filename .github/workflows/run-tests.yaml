@@ -17,6 +17,9 @@ jobs:
       - run: poetry install
 
   run-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
     needs: setup
     runs-on: ${{ matrix.os }}
     steps:
