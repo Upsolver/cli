@@ -46,7 +46,8 @@ jobs:
           asset_content_type: application/tar+gz
 
       - name: Generate homebrew formula
-        run: poetry run python scripts/gen-brew-formula.py --cli-archive-url ${{ steps.create_release.outputs.upload_url }}
+        run: |
+          poetry run python scripts/gen-brew-formula.py --cli-archive-url "${{ steps.create_release.outputs.html_url }}/cli-${{ steps.build-archive.outputs.version}}.tar.gz"
 
       - name: Commit updated homebrew formula
         run: |
