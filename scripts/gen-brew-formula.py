@@ -4,6 +4,7 @@ import subprocess
 import urllib.request
 from pathlib import Path
 from string import Template
+from typing import Optional
 
 import click
 import poet
@@ -17,11 +18,13 @@ DEFAULT_ARCHIVE_URL = f'https://github.com/Upsolver/cli/releases/download/stable
 @click.command(help='Generates brew Formula based on poetry.lock file')
 @click.option('--cli-archive-url', default=DEFAULT_ARCHIVE_URL)
 @click.option('--compute-hash-from-build', default=False, is_flag=True)
+@click.option('--compute-hash-from-file', default=None)
 @click.option('--poetry-lock-path', default=str(Path.cwd() / 'poetry.lock'))
 @click.option('--formula-template-path', default=str(Path.cwd() / 'scripts/upsolver-cli.rb.template'))
 @click.option('--formula-out-path', default=str(Path.cwd() / 'Formula/upsolver-cli.rb'))
 def generate_brew_formula(cli_archive_url: str,
                           compute_hash_from_build: bool,
+                          compute_hash_from_file: Optional[str],
                           poetry_lock_path: str,
                           formula_template_path: str,
                           formula_out_path: str) -> None:
@@ -39,7 +42,9 @@ def generate_brew_formula(cli_archive_url: str,
     ])
 
     cli_archive_url_for_hash = cli_archive_url
-    if compute_hash_from_build:
+    if compute_hash_from_file:
+        cli_archive_url_for_hash = 'file://' + compute_hash_from_file
+    elif compute_hash_from_build:
         build_res = subprocess.run(["poetry", "build"])
         if build_res.returncode != 0:
             print(f'Failed to build project, "poetry build" exited with code {build_res.returncode}')
