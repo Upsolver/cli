@@ -33,7 +33,7 @@ jobs:
           pip install poetry==1.1.13
           poetry install
           poetry build
-          echo "::set-output version=version::$(python scripts/echo-version.py)"
+          echo "::set-output name=version::$(python scripts/echo-version.py)"
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
