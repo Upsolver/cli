@@ -42,8 +42,8 @@ def generate_brew_formula(cli_archive_url: str,
     ])
 
     cli_archive_url_for_hash = cli_archive_url
-    if compute_hash_from_file:
-        cli_archive_url_for_hash = 'file://' + compute_hash_from_file
+    if compute_hash_from_file is not None:
+        cli_archive_url_for_hash = 'file://' + str(Path(compute_hash_from_file).resolve())
     elif compute_hash_from_build:
         build_res = subprocess.run(["poetry", "build"])
         if build_res.returncode != 0:
