@@ -55,6 +55,8 @@ def generate_brew_formula(cli_archive_url: str,
     with urllib.request.urlopen(cli_archive_url_for_hash) as cli_archive_f:
         archive_hash = hashlib.sha256(cli_archive_f.read()).hexdigest()
 
+    print(f'computed hash {archive_hash} from archive url {cli_archive_url_for_hash}')
+
     with open(formula_template_path, 'r') as formula_template_f, \
          open(formula_out_path, 'w') as formula_out_f:
         formula_content = Template(formula_template_f.read()).substitute({
