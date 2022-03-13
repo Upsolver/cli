@@ -47,7 +47,7 @@ jobs:
 
       - name: Generate homebrew formula
         run: |
-          poetry run python scripts/gen-brew-formula.py --cli-archive-url "${{ steps.create_release.outputs.html_url }}/cli-${{ steps.build-archive.outputs.version}}.tar.gz" --compute-hash-from-file ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
+          poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref }}/cli-${{ steps.build-archive.outputs.version}}.tar.gz" --compute-hash-from-file ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
 
       - name: Commit updated homebrew formula
         run: |
