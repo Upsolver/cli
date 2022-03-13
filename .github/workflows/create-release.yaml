@@ -55,4 +55,4 @@ jobs:
           git config --local user.name "GitHub Release Bot"
           git add ./Formula/upsolver-cli.rb
           git commit -m "updated homebrew formula"
-          git push -u origin $(eval git branch --show-current)
+          git push origin HEAD:master
