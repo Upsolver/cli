@@ -1,7 +1,7 @@
-name: Run Pre Commit Hooks
+name: Run Coding Standards Checks
 on: [push]
 jobs:
-  run-pre-commit-hooks:
+  run-code-standards:
     strategy:
       matrix:
         os: [ubuntu-latest]
