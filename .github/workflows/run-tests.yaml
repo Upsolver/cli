@@ -1,11 +1,12 @@
 name: Tests
 on:
-  workflow_run:
+  static-code-checks-workflow:
     workflows: [Static Code Checks]
     types:
       - completed
 jobs:
   run-tests:
+    if: ${{ github.event.static-code-checks-workflow.conclusion == 'success' }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]

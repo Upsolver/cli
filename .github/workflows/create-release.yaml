@@ -3,8 +3,13 @@ on:
   push:
     tags:
       - 'v*'
+  tests-workflow:
+    workflows: [Tests]
+    types:
+      - completed
 jobs:
   create-release:
+    if: ${{ github.event.tests-workflow.conclusion == 'success' }}
     name: Create Release
     runs-on: ubuntu-latest
     steps:
