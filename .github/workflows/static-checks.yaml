@@ -1,4 +1,4 @@
-name: Run Coding Standards Checks
+name: Static Code Checks
 on: [push]
 jobs:
   run-code-standards:

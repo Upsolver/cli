@@ -14,7 +14,7 @@ def exit_with(code: errors.ExitCode, msg: str) -> None:
     sys.exit(code.value)
 
 
-def main():
+def main() -> None:
     try:
         root_command()
     except ConnectionError as ex:
