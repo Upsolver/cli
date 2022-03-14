@@ -21,6 +21,48 @@ class ExitCode(Enum):
     ClusterNotFound = -101
 
 
+"""
+- CliErr: All errors thrown by upsolver cli code extend this class
+- InternalErr: programming error / something went wrong
+- ConfigErr: errors related to configuration (e.g. failure to read config from disk)
+- RequestErr: sub-divides into two major classes:
+  1. NetworkErr: something went wrong at the network layer (e.g. request timeout or invalid host)
+
+  2. ApiErr: upsolver API reports an error (non 2XX response) e.g. invalid auth credentials. This
+     class of errors also includes issues *with* upsolvers API, i.e. invalid/unexpected responses.
+
+- OperationErr: API works as expected but the operation is invalid, e.g. attempting to delete a non
+  existent cluster.
+
+
+                                                     ┌──────┐
+                                                     │CliErr│
+                                                     └──────┘
+                                                         ▲
+                                                         │
+          ┌──────────────────────┬───────────────────────┴───┬────────────────────────────────────────┐
+          │                      │                           │                                        │
+          │                      │                           │                                        │
+   ┌─────────────┐         ┌───────────┐              ┌─────────────┐                         ┌───────────────┐
+   │ InternalErr │         │ ConfigErr │              │ RequestErr  │                         │ OperationErr  │
+   └─────────────┘         └───────────┘              └─────────────┘                         └───────────────┘
+          ▲                      ▲                           ▲                                        ▲
+          │                      │                           │                                        │
+          │                      │                  ┌────────┴───────┐                     ┌──────────┴────────────┐
+          │                      │                  │                │                     │                       │
+          │                      │                  │                │                     │                       │
+┌───────────────────┐    ┌───────────────┐   ┌────────────┐     ┌─────────┐        ┌───────────────┐     ┌──────────────────┐
+│ NotImplementedErr │    │ConfigReadFail │   │ NetworkErr │     │ ApiErr  │        │ UserHasNoOrgs │     │ ClusterNotFound  │
+└───────────────────┘    └───────────────┘   └────────────┘     └─────────┘        └───────────────┘     └──────────────────┘
+                                                                     ▲
+                                                      ┌──────────────┴───────────────┐
+                                                      │                              │
+                                            ┌───────────────────┐        ┌───────────────────────┐
+                                            │ PayloadPathKeyErr │        │ PendingResultTimeout  │
+                                            └───────────────────┘        └───────────────────────┘
+"""
+
+
 class CliErr(Exception, metaclass=ABCMeta):
     """
     Root of all Errors

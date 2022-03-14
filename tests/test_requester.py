@@ -60,4 +60,4 @@ def test_response_validation(mocker: MockerFixture) -> None:
     with pytest.raises(ApiErr) as err:
         requester.get('/test')
 
-    assert err.value.status_code == 404
+    assert err.value.resp.status_code == 404
