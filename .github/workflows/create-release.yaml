@@ -42,5 +42,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
-          asset_name: cli-${{ steps.build-archive.outputs.version }}.tar.gz
+          asset_name: upsolver-cli.tar.gz
           asset_content_type: application/tar+gz
