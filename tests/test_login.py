@@ -13,6 +13,7 @@ auth_settings = ProfileAuthSettings(token='token1234', base_url=URL('base_url'))
 
 
 def test_auth_settings_saved(mocker: MockerFixture, tmp_path: Path) -> None:
+    assert 5 == 4
     api = mocker.MagicMock()
     api.authenticate = mocker.MagicMock(
         return_value=auth_settings
