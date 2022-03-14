@@ -17,7 +17,7 @@ brew install upsolver-cli
 Install using `pip` (Python 3.10+ required):
 
 ```commandline
-pip install https://github.com/Upsolver/cli/releases/download/v0.1.0/cli-0.1.0.tar.gz --user
+pip install https://github.com/Upsolver/cli/releases/download/v0.1.0/upsolver-cli.tar.gz --user
 ```
 
 You can grab the latest archive link from https://github.com/Upsolver/cli/releases
@@ -87,13 +87,13 @@ poetry install
 You can now use `poetry`s shell or `poetry run` command:
 ```commandline
 poetry shell
-src/main.py
+cli/main.py
 ```
 
 or
 
 ```commandline
-poetry run src/main.py
+poetry run cli/main.py
 ```
 
 ### Install `pre-commit` hooks
