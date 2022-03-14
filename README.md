@@ -113,7 +113,7 @@ poetry build
 Since homebrew formulas are expected to list project dependencies explicitly, there's a script to generate them from the `poetry.lock` file. This script is also used by the "Create Release" workflow.
 
 ```commandline
-$ scripts/gen-brew-formula.py --help                                                                                                                          130 ↵
+$ scripts/gen-brew-formula.py --help
 Usage: gen-brew-formula.py [OPTIONS]
 
   Generates brew Formula based on poetry.lock file
