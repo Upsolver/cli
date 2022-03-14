@@ -1,5 +1,9 @@
 name: Tests
-on: [push]
+on:
+  workflow_run:
+    workflows: [Static Code Checks]
+    types:
+      - completed
 jobs:
   run-tests:
     strategy:
