@@ -44,3 +44,15 @@ jobs:
           asset_path: ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
           asset_name: upsolver-cli.tar.gz
           asset_content_type: application/tar+gz
+
+      - name: Generate homebrew formula
+        run: |
+          poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver-cli.tar.gz" --compute-hash-from-file dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
+
+      - name: Commit updated homebrew formula
+        run: |
+          git config --local user.email "release-bot@github.com"
+          git config --local user.name "GitHub Release Bot"
+          git add ./Formula/upsolver-cli.rb
+          git commit -m "updated homebrew formula"
+          git push origin HEAD:master
