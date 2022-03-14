@@ -48,7 +48,7 @@ def generate_brew_formula(cli_archive_url: str,
         build_res = subprocess.run(["poetry", "build"])
         if build_res.returncode != 0:
             print(f'Failed to build project, "poetry build" exited with code {build_res.returncode}')
-            exit(-1)
+            exit(build_res.returncode)
 
         cli_archive_url_for_hash = 'file://' + str(Path.cwd() / f'dist/cli-{cli.__version__}.tar.gz')
 

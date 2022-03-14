@@ -13,7 +13,7 @@ brew tap Upsolver/cli
 brew install upsolver-cli
 ```
 
-### Windows
+### Linux / Windows
 Install using `pip` (Python 3.10+ required):
 
 ```commandline
