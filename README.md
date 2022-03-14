@@ -1,6 +1,9 @@
 # cli
 The Upsolver Command Line Interface.
 
+![example workflow](https://github.com/Upsolver/cli/actions/workflows/run-tests.yaml/badge.svg)
+
+
 ## Getting Started
 
 - Install Python (https://github.com/pyenv/pyenv#installation, min required version: 3.10):
