@@ -29,6 +29,7 @@ from cli.upsolver.lsp import FakeLspApi, LspApi
 from cli.upsolver.query import ExecutionResult, QueryApi, RestQueryApi, SimpleResponsePoller
 from cli.upsolver.requester import Requester, TokenAuthFiller
 from cli.upsolver.tables import RestTablesApi, TablesApi
+from cli.utils import ensure_exists
 
 
 class CliContext(object):
@@ -58,6 +59,7 @@ class CliContext(object):
 
         handlers: list[logging.Handler] = []
         if conf.options is not None:
+            ensure_exists(conf.options.log_file)
             handlers.append(RotatingFileHandler(
                 filename=conf.options.log_file,
                 maxBytes=10 * (2 ** 20),
