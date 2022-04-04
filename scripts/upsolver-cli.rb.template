@@ -5,7 +5,7 @@ class UpsolverCli < Formula
   homepage "https://upsolver.com/"
   url "$url"
   sha256 "$url_sha256"
-  license "BSD-3-Clause"
+  license "MIT"
 
   depends_on "poetry" => :build
   depends_on "python@3.10"
