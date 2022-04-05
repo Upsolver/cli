@@ -36,7 +36,7 @@ def stats(ctx: CliContext, tables: list[str]) -> None:
     )
 
 
-@tables.command(help='Export a certain table as a "CREATE TABLEW" sql command that can be '
+@tables.command(help='Export a certain table as a "CREATE TABLE" sql command that can be '
                      'used in an "upsolver execute" command')
 @click.pass_obj
 @click.argument('table', nargs=1)
