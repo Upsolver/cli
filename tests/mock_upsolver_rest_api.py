@@ -64,6 +64,33 @@ class MockUpsolverRestApi(object):
             json=self._users_resp
         )
 
+        self.mock.get(
+            '/jobs',
+            request_headers={
+                'Authorization': DEFAULT_TOKEN
+            },
+            json={
+                'jobs': [
+                    {
+                        'connector': 'S3',
+                        'name': 'extract data from tutorials',
+                        'description': '',
+                        'status': 'Running',
+                        'delay': 0,
+                        'errorsLastDay': 22109,
+                        'creationTime': '2022-03-23T15:05:02.921336Z',
+                        'createdBy': 'xx', 'createdByName': 'test',
+                        'createdByEmail': 'something@email.com',
+                        'modifiedTime': '2022-03-23T15:05:02.926602Z',
+                        'modifiedBy': 'modifyby',
+                        'modifiedByName': 'mofidy by',
+                        'modifiedByEmail': 'modify@email.com',
+                        'wizards': []
+                    },
+                ]
+            }
+        )
+
         # catalogs api response
         self.mock.get('/connections', json=[])
 

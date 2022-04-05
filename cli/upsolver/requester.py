@@ -148,4 +148,4 @@ class Requester(object):
         return self._get_list('tables', getattr(raw_entities.Table, 'from_dict'))
 
     def get_jobs(self) -> list[JobInfo]:
-        return self._get_list('jobs', getattr(raw_entities.Table, 'from_dict'), lst_accessor='jobs')
+        return self._get_list('jobs', getattr(raw_entities.JobInfo, 'from_dict'), lst_accessor='jobs')
