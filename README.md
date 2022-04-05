@@ -9,7 +9,7 @@ The Upsolver Command Line Interface.
 ### MacOS
 
 ```commandline
-brew tap Upsolver/cli
+brew tap upsolver/cli https://github.com/Upsolver/cli
 brew install upsolver-cli
 ```
 
