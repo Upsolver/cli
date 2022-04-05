@@ -15,7 +15,7 @@ def jobs() -> None:
     pass
 
 
-@jobs.command(help='List clusters')
+@jobs.command(help='List jobs')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
     ctx.write(ctx.upsolver_api().get_jobs())
