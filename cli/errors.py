@@ -83,6 +83,10 @@ class CliErr(Exception, metaclass=ABCMeta):
         pass
 
     def __str__(self) -> str:
+        # make an effort to extract a message
+        for msg in [m for m in self.args if type(m) == str]:
+            return msg
+
         return self.__class__.__name__
 
 

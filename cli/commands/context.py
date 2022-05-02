@@ -91,7 +91,7 @@ class CliContext(object):
             get_auth_settings(self.confman.conf.active_profile)
 
         if auth_settings is None:
-            raise ConfigErr('could not find authentication settings, please use the '
+            raise ConfigErr('Could not find authentication settings, please use the '
                             '`login` sub-command to generate them.')
 
         return build_upsolver_api(
