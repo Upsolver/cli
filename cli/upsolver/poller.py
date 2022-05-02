@@ -9,6 +9,15 @@ from cli.upsolver.response import UpsolverResponse
 """
 Polling is performed on responses that are "pending": we don't know when the results will be
 available and so the Poller's job is to wait until the results are ready.
+
+inputs:
+- a Requester is required to make further requests (i.e. to poll).
+- UpsolverResponse object is the initial response the poller will try to get the results of.
+
+outputs:
+- ExecutionResult is the result for the initial response given in the inputs
+- an optional NextResultPath that can be queried for further results (e.g. when performing a
+  SELECT the response mayb have multiple parts).
 """
 ResponsePoller = Callable[
     [Requester, UpsolverResponse],
