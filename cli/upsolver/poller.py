@@ -1,7 +1,8 @@
 import time
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from cli import errors
+from cli.errors import UnknownResponse
 from cli.upsolver.entities import ExecutionResult, NextResultPath
 from cli.upsolver.requester import Requester
 from cli.upsolver.response import UpsolverResponse
@@ -47,9 +48,17 @@ class SimpleResponsePoller(object):
         if int(sc / 100) != 2:
             raise_err()
 
-        resp_json = resp.json()
-        rjson = resp_json[0] if type(resp_json) is list else resp_json
+        def extract_json() -> dict[Any, Any]:
+            resp_json = resp.json()
+            if type(resp_json) is list and type(resp_json[0]) is dict:
+                if 'status' not in resp_json[0]:
+                    raise UnknownResponse(resp, 'expected "status" field in response object')
 
+                return resp_json[0]
+
+            raise UnknownResponse(resp, 'expected a list with single result object')
+
+        rjson = extract_json()
         status = rjson['status']
         is_success = sc == 200 and status == 'Success'
 
@@ -72,12 +81,15 @@ class SimpleResponsePoller(object):
                 start_time=start_time,
             )
 
-        result = rjson['result']
-        grid = result['grid']  # columns, data, ...
-        column_names = [c['name'] for c in grid['columns']]
-        data_w_columns: ExecutionResult = [dict(zip(column_names, row)) for row in grid['data']]
+        if 'result' in rjson:
+            result = rjson['result']
+            grid = result['grid']  # columns, data, ...
+            column_names = [c['name'] for c in grid['columns']]
+            data_w_columns: ExecutionResult = [dict(zip(column_names, row)) for row in grid['data']]
 
-        return data_w_columns, result.get('next')
+            return data_w_columns, result.get('next')
+        else:
+            return [rjson], None
 
     def __call__(self, requester: Requester, resp: UpsolverResponse) -> \
             tuple[ExecutionResult, Optional[NextResultPath]]:

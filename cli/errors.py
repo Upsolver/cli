@@ -154,7 +154,7 @@ class ApiErr(RequestErr):
     def exit_code() -> ExitCode:
         return ExitCode.ApiErr
 
-    def __init__(self, resp: UpsolverResponse):
+    def __init__(self, resp: UpsolverResponse) -> None:
         self.resp = resp
 
     def detail_message(self) -> Optional[str]:
@@ -180,6 +180,15 @@ class ApiErr(RequestErr):
 
         return f'API Error [status_code={self.resp.status_code}{req_id_part}]: ' \
                f'{self.detail_message()}'
+
+
+class UnknownResponse(ApiErr):
+    def __init__(self, resp: UpsolverResponse, reason: str) -> None:
+        super(UnknownResponse, self).__init__(resp)
+        self.reason = reason
+
+    def __str__(self) -> str:
+        return f'Unexpected API response ({self.reason}: {self.resp})'
 
 
 class PendingResultTimeout(ApiErr):
