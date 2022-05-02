@@ -188,7 +188,7 @@ class UnknownResponse(ApiErr):
         self.reason = reason
 
     def __str__(self) -> str:
-        return f'Unexpected API response ({self.reason}: {self.resp})'
+        return f'Unexpected API response ({self.reason}): {self.resp}'
 
 
 class PendingResultTimeout(ApiErr):

@@ -48,17 +48,23 @@ class SimpleResponsePoller(object):
         if int(sc / 100) != 2:
             raise_err()
 
+        def verify_json(j: dict[Any, Any]) -> dict[Any, Any]:
+            if 'status' not in j:
+                raise UnknownResponse(resp, 'expected "status" field in response object')
+            return j
+
         def extract_json() -> dict[Any, Any]:
             resp_json = resp.json()
-            if type(resp_json) is list and type(resp_json[0]) is dict:
-                if 'status' not in resp_json[0]:
-                    raise UnknownResponse(resp, 'expected "status" field in response object')
-
+            if type(resp_json) is dict:
+                return resp_json
+            elif type(resp_json[0]) is dict:
+                if len(resp_json) > 1:
+                    raise UnknownResponse(resp, 'got list with multiple objects')
                 return resp_json[0]
+            else:
+                raise UnknownResponse(resp, 'failed to find result object')
 
-            raise UnknownResponse(resp, 'expected a list with single result object')
-
-        rjson = extract_json()
+        rjson = verify_json(extract_json())
         status = rjson['status']
         is_success = sc == 200 and status == 'Success'
 

@@ -35,3 +35,6 @@ class UpsolverResponse(object):
             return NestedDictAccessor(self.resp.json())[item]
         except KeyError:
             return None
+
+    def __str__(self) -> str:
+        return str(self.resp.json())
