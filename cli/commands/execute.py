@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 import click
@@ -14,18 +15,26 @@ from cli.formatters import Formatter, OutputFmt
               help='The format that the results will be returned in')
 @click.option('-d', '--dry-run', is_flag=True, default=False,
               help='Validate expression is syntactically valid but don\'t run the command.')
+@click.option('-s', '--ignore-errors', is_flag=True, default=False,
+              help='Ignore errors in query responses. Default behavior is to stop on error.')
 def execute(
     ctx: CliContext,
     expression: str,
     output_format: Optional[str],
     dry_run: bool,
+    ignore_errors: bool
 ) -> None:
     """
     Execute a single SQL query
     """
     expression = expression.strip()
+
     if expression == '-':
         expression = click.get_text_stream('stdin').read().strip()
+    else:
+        p = Path(expression)
+        if p.exists():
+            expression = p.read_text()
 
     if len(expression) == 0:
         return
@@ -51,9 +60,13 @@ def execute(
             if len(queries) > 1:
                 ctx.write({'marker': 'results_start', 'query': q})
 
-            for res in api.execute(q):
-                for res_part in res:
-                    ctx.write(res_part, fmt)
+            try:
+                for res in api.execute(q):
+                    for res_part in res:
+                        ctx.write(res_part, fmt)
+            except Exception as ex:
+                if not ignore_errors:
+                    raise ex
 
             if len(queries) > 1:
                 ctx.write({'marker': 'results_end', 'query': q})
