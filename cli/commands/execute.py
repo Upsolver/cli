@@ -58,7 +58,7 @@ def execute(
         queries = ctx.query_lexer().split(expression)
         for q in queries:
             if len(queries) > 1:
-                ctx.write({'marker': 'results_start', 'query': q})
+                ctx.write({'marker': 'execution_start', 'query': q})
 
             try:
                 for res in api.execute(q):
@@ -67,6 +67,5 @@ def execute(
             except Exception as ex:
                 if not ignore_errors:
                     raise ex
-
-            if len(queries) > 1:
-                ctx.write({'marker': 'results_end', 'query': q})
+                else:
+                    ctx.write({'query': q, 'error': str(ex)})
