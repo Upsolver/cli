@@ -46,6 +46,14 @@ def execute(
         else:
             echo("Expression is valid.")
     else:
-        for q in ctx.query_lexer().split(expression):
+        queries = ctx.query_lexer().split(expression)
+        for q in queries:
+            if len(queries) > 1:
+                ctx.write({'marker': 'results_start', 'query': q})
+
             for res in api.execute(q):
-                ctx.write(res, fmt)
+                for res_part in res:
+                    ctx.write(res_part, fmt)
+
+            if len(queries) > 1:
+                ctx.write({'marker': 'results_end', 'query': q})
