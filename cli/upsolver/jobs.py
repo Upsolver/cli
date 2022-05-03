@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+from cli import errors
 from cli.upsolver.entities import Job
 from cli.upsolver.requester import Requester
 
@@ -22,4 +23,8 @@ class RestJobsApi(JobsApi):
         return [ji.to_job() for ji in self.requester.get_jobs()]
 
     def export_job(self, job: str) -> str:
-        raise NotImplementedError()
+        resp = self.requester.get(f'inspections/describe/%2Fjobs%2F{job}')
+        try:
+            return resp.json()['sql']
+        except Exception:
+            raise errors.PayloadErr(resp, 'failed to extract sql statement')
