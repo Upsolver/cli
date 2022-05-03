@@ -63,5 +63,6 @@ class NestedDictAccessor(object):
         return curr
 
 
+# Protocol == structural typing support (https://peps.python.org/pep-0544/)
 class AnyDataclass(Protocol):
     __dataclass_fields__: Dict[Any, Any]

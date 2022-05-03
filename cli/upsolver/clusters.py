@@ -37,7 +37,7 @@ class RestClustersApi(ClustersApi):
             if c.name == cluster:
                 return c.id
 
-        raise errors.ClusterNotFound(cluster, available_clusters)
+        raise errors.EntityNotFound(cluster, [c.name for c in available_clusters])
 
     def get_clusters(self) -> list[Cluster]:
         return [env.to_cluster() for env in self.requester.get_environments()]

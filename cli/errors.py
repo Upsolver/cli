@@ -8,7 +8,6 @@ from typing import Any, Optional
 from yarl import URL
 
 from cli.formatters import OutputFmt
-from cli.upsolver.entities import Cluster
 from cli.upsolver.requester import UpsolverResponse
 
 
@@ -22,7 +21,7 @@ class ExitCode(Enum):
 
     UserHasNoOrgs = -100
 
-    ClusterNotFound = -101
+    EntityNotFound = -101
 
 
 """
@@ -163,7 +162,9 @@ class ApiErr(RequestErr):
         """
         try:
             j = json.loads(self.resp.text)
-            if j is not None and j.get('clazz') == 'ForbiddenException':
+            if type(j) is str:
+                return j
+            elif j is not None and j.get('clazz') == 'ForbiddenException':
                 return j.get('detailMessage')
             elif j is not None and j.get('message') is not None:
                 return j.get('message')
@@ -259,15 +260,15 @@ class UserHasNoOrgs(OperationErr):
         return f'User {email_part}has no organization available'
 
 
-class ClusterNotFound(OperationErr):
+class EntityNotFound(OperationErr):
     @staticmethod
     def exit_code() -> ExitCode:
-        return ExitCode.ClusterNotFound
+        return ExitCode.EntityNotFound
 
-    def __init__(self, cluster_name: str, existing_clusters: list[Cluster]):
-        self.cluster_name = cluster_name
-        self.existing_clusters = existing_clusters
+    def __init__(self, name: str, existing: list[str]):
+        self.name = name
+        self.existing = existing
 
     def __str__(self) -> str:
-        return f'Failed to find cluster named \'{self.cluster_name}\' in the following ' \
-               f'list of available clusters: {",".join([c.name for c in self.existing_clusters])}'
+        return f'Failed to find \'{self.name}\' in the following ' \
+               f'list of available entities: {", ".join(self.existing)}'
