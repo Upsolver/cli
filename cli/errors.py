@@ -182,6 +182,11 @@ class ApiErr(RequestErr):
                f'{self.detail_message()}'
 
 
+class AuthErr(ApiErr):
+    def __str__(self) -> str:
+        return 'Authentication error, please run \'login\' command to create a valid token'
+
+
 class PendingResultTimeout(ApiErr):
     def __init__(self, resp: UpsolverResponse):
         super().__init__(resp)

@@ -14,9 +14,12 @@ from cli.utils import get_logger
 ResponseVaidator = Callable[[Response], Response]
 
 
-def validate_resp_2xx(resp: Response) -> Response:
+def default_resp_validator(resp: Response) -> Response:
+    uresp = UpsolverResponse(resp)
+    if resp.status_code == 403:
+        raise errors.AuthErr(uresp)
     if int(resp.status_code / 100) != 2:
-        raise errors.ApiErr(UpsolverResponse(resp))
+        raise errors.ApiErr(uresp)
     return resp
 
 
@@ -38,7 +41,7 @@ class Requester(object):
     def __init__(self,
                  base_url: URL,
                  auth_filler: Optional[AuthFiller] = None,
-                 resp_validator: Optional[ResponseVaidator] = validate_resp_2xx):
+                 resp_validator: Optional[ResponseVaidator] = default_resp_validator):
         """
         :param base_url: all requests will be issued to this host
         :param auth_filler: will be used to modify Request objects prior to sending them in order to

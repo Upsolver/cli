@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys
-import traceback
 
 from click import echo
 from requests.exceptions import ConnectionError
@@ -24,7 +23,6 @@ def main() -> None:
     except NotImplementedError:
         exit_with(errors.ExitCode.InternalErr, 'This command is not yet implemented')
     except errors.CliErr as ex:
-        print(traceback.format_exc())
         exit_with(ex.exit_code(), str(ex))
 
 

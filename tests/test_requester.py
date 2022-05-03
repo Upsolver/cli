@@ -7,7 +7,7 @@ from requests_mock import NoMockAddress
 from yarl import URL
 
 from cli.errors import ApiErr
-from cli.upsolver.requester import Requester, validate_resp_2xx
+from cli.upsolver.requester import Requester, default_resp_validator
 
 # some tests check things that apply to all request methods. Such tests should be
 # parameterized with this list (using @pytest.mark.parameterize).
@@ -38,7 +38,7 @@ def test_response_validation(
         method: str) -> None:
     r = Requester(
         base_url=URL('http://localhost'),
-        resp_validator=validate_resp_2xx
+        resp_validator=default_resp_validator
     )
     (sc, fail) = sc_fail
 
