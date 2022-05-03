@@ -182,15 +182,6 @@ class ApiErr(RequestErr):
                f'{self.detail_message()}'
 
 
-class UnknownResponse(ApiErr):
-    def __init__(self, resp: UpsolverResponse, reason: str) -> None:
-        super(UnknownResponse, self).__init__(resp)
-        self.reason = reason
-
-    def __str__(self) -> str:
-        return f'Unexpected API response ({self.reason}): {self.resp}'
-
-
 class PendingResultTimeout(ApiErr):
     def __init__(self, resp: UpsolverResponse):
         super().__init__(resp)
@@ -209,7 +200,7 @@ class PayloadErr(ApiErr):
         self.msg = msg
 
     def __str__(self) -> str:
-        return f'Payload err: {self.msg}'
+        return f'Payload err ({self.msg}): {self.resp}'
 
 
 class PayloadPathKeyErr(ApiErr):

@@ -2,7 +2,7 @@ import time
 from typing import Any, Callable, Optional
 
 from cli import errors
-from cli.errors import UnknownResponse
+from cli.errors import PayloadErr
 from cli.upsolver.entities import ExecutionResult, NextResultPath
 from cli.upsolver.requester import Requester
 from cli.upsolver.response import UpsolverResponse
@@ -50,7 +50,7 @@ class SimpleResponsePoller(object):
 
         def verify_json(j: dict[Any, Any]) -> dict[Any, Any]:
             if 'status' not in j:
-                raise UnknownResponse(resp, 'expected "status" field in response object')
+                raise PayloadErr(resp, 'expected "status" field in response object')
             return j
 
         def extract_json() -> dict[Any, Any]:
@@ -59,10 +59,10 @@ class SimpleResponsePoller(object):
                 return resp_json
             elif type(resp_json[0]) is dict:
                 if len(resp_json) > 1:
-                    raise UnknownResponse(resp, 'got list with multiple objects')
+                    raise PayloadErr(resp, 'got list with multiple objects')
                 return resp_json[0]
             else:
-                raise UnknownResponse(resp, 'failed to find result object')
+                raise PayloadErr(resp, 'failed to find result object')
 
         rjson = verify_json(extract_json())
         status = rjson['status']
