@@ -18,9 +18,9 @@ class ExitCode(Enum):
     ApiErr = -2
     ConfigurationErr = -3
     PrivateApiUnavailable = -4
+    InvalidOption = -5
 
     UserHasNoOrgs = -100
-
     EntityNotFound = -101
 
 
@@ -87,6 +87,12 @@ class CliErr(Exception, metaclass=ABCMeta):
             return msg
 
         return self.__class__.__name__
+
+
+class InvalidOptionErr(CliErr):
+    @staticmethod
+    def exit_code() -> ExitCode:
+        return ExitCode.InvalidOption
 
 
 class InternalErr(CliErr):

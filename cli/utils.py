@@ -6,6 +6,8 @@ from typing import Any, Dict, Optional, Protocol
 import click
 from yarl import URL
 
+from cli import errors
+
 seconds_per_unit: dict[str, float] = {'s': 1.0, 'm': 60.0}
 
 
@@ -14,7 +16,11 @@ def convert_to_seconds(s: str) -> float:
 
 
 def convert_time_str(ctx: click.Context, param: click.Option | click.Parameter, value: Any) -> Any:
-    return convert_to_seconds(value)
+    try:
+        return convert_to_seconds(value)
+    except Exception:
+        raise errors.InvalidOptionErr(f'Cannot convert \'{value}\' to seconds '
+                                      '(valid examples: 0.25s, 1.5m)')
 
 
 def get_logger(path: Optional[str] = None) -> Logger:
