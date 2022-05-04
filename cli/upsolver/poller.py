@@ -26,9 +26,16 @@ ResponsePoller = Callable[
 ]
 
 
+"""
+Build a ResponsePoller that will timeout after the provided interval.
+"""
+TimeoutSec = float
+ResponsePollerBuilder = Callable[[TimeoutSec], ResponsePoller]
+
+
 class SimpleResponsePoller(object):
     def __init__(self,
-                 wait_interval_sec: float = 0.5,
+                 wait_interval_sec: float = 0.1,
                  max_time_sec: Optional[float] = 10.0):
         self.wait_interval_sec = wait_interval_sec
         self.max_time_sec = max_time_sec

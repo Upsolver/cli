@@ -3,7 +3,18 @@ from logging import Logger
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 
+import click
 from yarl import URL
+
+seconds_per_unit: dict[str, float] = {'s': 1.0, 'm': 60.0}
+
+
+def convert_to_seconds(s: str) -> float:
+    return float(s[:-1]) * seconds_per_unit[s[-1]]
+
+
+def convert_time_str(ctx: click.Context, param: click.Option | click.Parameter, value: Any) -> Any:
+    return convert_to_seconds(value)
 
 
 def get_logger(path: Optional[str] = None) -> Logger:

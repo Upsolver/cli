@@ -51,7 +51,7 @@ class UpsolverShell(object):
                 echo(f'Unknown command: {text}')
             else:
                 try:
-                    result = self.api.execute(text)
+                    result = self.api.execute(text, timeout_sec=10.0)
                     echo(message=self.formatter(result), file=sys.stdout)
                 except Exception as ex:
                     echo(message=ex, file=sys.stderr)

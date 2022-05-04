@@ -19,4 +19,4 @@ def test_timeout(requests_mock: RequestsMocker, tmp_path: Path) -> None:
     api = CliContext(ConfigurationManager(tmp_path / 'conf')).upsolver_api()
 
     with pytest.raises(PendingResultTimeout):
-        list(api.execute('SELECT * FROM something'))
+        list(api.execute('SELECT * FROM something', timeout_sec=1.0))

@@ -24,7 +24,7 @@ def build_upsolver_api(requester: Requester) -> UpsolverApi:
         RestCatalogsApi(requester),
         RestJobsApi(requester),
         RestTablesApi(requester),
-        RestQueryApi(requester, SimpleResponsePoller()),
+        RestQueryApi(requester, lambda timeout_sec: SimpleResponsePoller(max_time_sec=timeout_sec)),
         FakeLspApi(),
     ]
 

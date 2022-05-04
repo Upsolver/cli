@@ -6,6 +6,7 @@ from click import echo
 
 from cli.commands.context import CliContext
 from cli.formatters import Formatter, OutputFmt
+from cli.utils import convert_time_str
 
 
 @click.command()
@@ -13,6 +14,8 @@ from cli.formatters import Formatter, OutputFmt
 @click.argument('expression')
 @click.option('-o', '--output-format', default=None,
               help='The format that the results will be returned in')
+@click.option('-t', '--timeout', 'timeout_sec', default='10s', callback=convert_time_str,
+              help='Timeout setting for pending responses')
 @click.option('-d', '--dry-run', is_flag=True, default=False,
               help='Validate expression is syntactically valid but don\'t run the command.')
 @click.option('-s', '--ignore-errors', is_flag=True, default=False,
@@ -21,6 +24,7 @@ def execute(
     ctx: CliContext,
     expression: str,
     output_format: Optional[str],
+    timeout_sec: float,
     dry_run: bool,
     ignore_errors: bool
 ) -> None:
@@ -61,11 +65,14 @@ def execute(
                 ctx.write({'marker': 'execution_start', 'query': q})
 
             try:
-                for res in api.execute(q):
+                for res in api.execute(q, timeout_sec):
                     for res_part in res:
                         ctx.write(res_part, fmt)
             except Exception as ex:
                 if not ignore_errors:
                     raise ex
                 else:
-                    ctx.write({'query': q, 'error': str(ex)})
+                    if len(queries) > 1:
+                        ctx.write({'query': q, 'error': str(ex)})
+                    else:
+                        click.echo(str(ex))
