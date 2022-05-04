@@ -8,7 +8,7 @@
 
 ### `execute` sub command
 
-- You can now pass a path to a file and it will execute it. Now you have two options for execute script files:
+- File paths are now supported. Now you have two options for executing script files:
 
 ```
 $ upsolver execute commands.sql
