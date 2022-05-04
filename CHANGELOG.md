@@ -1,3 +1,11 @@
+# v0.1.4
+- `ls` sub-commands now return "raw" responses from the API. Prior to this the responses were converted to simplified objects, which missed a lot of info. These simplified objects are still used in the `stats` screens but need some work to show useful info.
+
+- `execute` sub-command now has a timeout flag `--timeout` or `-t`: it controls how much time the CLI should wait for results (of pending responses) to become ready. This timeout settings is *per* statement.
+
+- Added `InvalidOptionErr` that will now be thrown when users pass invalid option values (e.g. badly formatted time value for the timeout setting).
+
+
 # v0.1.3
 ## Improvements
 - Improved error messages.
