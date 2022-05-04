@@ -18,7 +18,7 @@ def tables() -> None:
 @tables.command(help='List clusters')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().get_tables())
+    ctx.write(ctx.upsolver_api().get_tables_raw())
 
 
 @tables.command(help='Display a live stream of table(s) statistics')

@@ -78,17 +78,26 @@ class TableColumn:
 
 @dataclass_json
 @dataclass
+class Compression:
+    name: str = field(metadata=config(field_name='displayName'))
+
+
+@dataclass_json
+@dataclass
 class Table:
     id: str
     org_id: str = field(metadata=config(field_name='organizationId'))
     display_data: DisplayData = field(metadata=config(field_name='displayData'))
     running: bool = field(metadata=config(field_name='isRunning'))
     partitions_columns: list[TableColumn] = field(metadata=config(field_name='partitionColumns'))
+    compression: Compression
 
     def to_table(self) -> entities.Table:
         return entities.Table(
             id=self.id,
-            name=self.display_data.name
+            name=self.display_data.name,
+            compression=self.compression.name,
+            is_running=self.running,
         )
 
 

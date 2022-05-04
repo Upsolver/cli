@@ -118,18 +118,15 @@ class Requester(object):
         payload = json if json is not None else {}
         return self._send(path, Request(method='PATCH'), payload)
 
-    @staticmethod
-    def _get_entities(resp: UpsolverResponse,
-                      list_field_name: Optional[str] = None) -> list[dict[Any, Any]]:
-        """
-        Given an API response will retrieve a list of entities (json objects / dicts).
-        :param resp: the response from which to extract the entities
-        :param list_field_name:
-        :return:
-        """
+    def get_list(self, path: str) -> list[dict[Any, Any]]:
+        lst, _ = self._get_list_and_resp(path)
+        return lst
 
+    @staticmethod
+    def _get_list(resp: UpsolverResponse, list_field_name: Optional[str] = None) \
+            -> list[dict[Any, Any]]:
         def raise_err() -> None:
-            raise errors.PayloadErr(resp, f'Expected list of elements, instead got: {resp.text}')
+            raise errors.PayloadErr(resp, 'expected list of elements')
 
         try:
             j = resp.json()
@@ -152,6 +149,10 @@ class Requester(object):
 
         return []  # placate mypy
 
+    def _get_list_and_resp(self, path: str) -> tuple[list[dict[Any, Any]], UpsolverResponse]:
+        resp = self.get(path)
+        return self._get_list(resp, 'jobs' if 'jobs' in path else None), resp
+
     T = TypeVar('T', bound=AnyDataclass)
 
     def _get_list_of(self, path: str, dataclass_type: Type[T]) -> list[T]:
@@ -162,11 +163,11 @@ class Requester(object):
         :param ctor: constructs entities from json objects (dictionaries)
         :return:
         """
-        resp = self.get(path)
+        entities, resp = self._get_list_and_resp(path)
         ctor = getattr(dataclass_type, 'from_dict')
         try:
             # responses to '/jobs' are special in that the results are mapped to a key ('jobs')
-            return [ctor(e) for e in self._get_entities(resp, 'jobs' if dataclass_type == JobInfo else None)]
+            return [ctor(e) for e in entities]
         except Exception:
             raise errors.PayloadErr(resp, f'Failed to extract list of entities: {resp.text}')
 

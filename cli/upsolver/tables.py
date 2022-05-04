@@ -1,11 +1,18 @@
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 from cli import errors
 from cli.upsolver.entities import Table, TablePartition
 from cli.upsolver.requester import Requester
 
 
-class TablesApi(metaclass=ABCMeta):
+class RawTablesApi(metaclass=ABCMeta):
+    @abstractmethod
+    def get_tables_raw(self) -> list[dict[Any, Any]]:
+        pass
+
+
+class TablesApi(RawTablesApi):
     @abstractmethod
     def get_tables(self) -> list[Table]:
         pass
@@ -25,6 +32,9 @@ class RestTablesApi(TablesApi):
 
     def get_tables(self) -> list[Table]:
         return [t.to_table() for t in self.requester.get_tables()]
+
+    def get_tables_raw(self) -> list[dict[Any, Any]]:
+        return self.requester.get_list('tables')
 
     def export_table(self, table: str) -> str:
         raise errors.NotImplementedErr()

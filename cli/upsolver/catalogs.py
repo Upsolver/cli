@@ -1,11 +1,18 @@
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 from cli import errors
 from cli.upsolver.entities import Catalog
 from cli.upsolver.requester import Requester
 
 
-class CatalogsApi(metaclass=ABCMeta):
+class RawCatalogsApi(metaclass=ABCMeta):
+    @abstractmethod
+    def get_catalogs_raw(self) -> list[dict[Any, Any]]:
+        pass
+
+
+class CatalogsApi(RawCatalogsApi):
     @abstractmethod
     def get_catalogs(self) -> list[Catalog]:
         pass
@@ -43,6 +50,9 @@ class RestCatalogsApi(CatalogsApi):
 
     def get_catalogs(self) -> list[Catalog]:
         return [c.to_catalog() for c in self.requester.get_connections()]
+
+    def get_catalogs_raw(self) -> list[dict[Any, Any]]:
+        return self.requester.get_list('connections')
 
     def export_catalog(self, catalog: str) -> str:
         connections = self.requester.get_connections()

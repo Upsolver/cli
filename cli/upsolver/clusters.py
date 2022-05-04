@@ -1,11 +1,18 @@
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 from cli import errors
 from cli.upsolver.entities import Cluster
 from cli.upsolver.requester import Requester
 
 
-class ClustersApi(metaclass=ABCMeta):
+class RawClustersApi(metaclass=ABCMeta):
+    @abstractmethod
+    def get_clusters_raw(self) -> list[dict[Any, Any]]:
+        pass
+
+
+class ClustersApi(RawClustersApi):
     @abstractmethod
     def get_clusters(self) -> list[Cluster]:
         pass
@@ -41,6 +48,9 @@ class RestClustersApi(ClustersApi):
 
     def get_clusters(self) -> list[Cluster]:
         return [env.to_cluster() for env in self.requester.get_environments()]
+
+    def get_clusters_raw(self) -> list[dict[Any, Any]]:
+        return self.requester.get_list('environments/dashboard')
 
     def export_cluster(self, cluster: str) -> str:
         raise NotImplementedError()

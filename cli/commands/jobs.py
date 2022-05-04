@@ -18,7 +18,7 @@ def jobs() -> None:
 @jobs.command(help='List jobs')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().get_jobs())
+    ctx.write(ctx.upsolver_api().get_jobs_raw())
 
 
 @jobs.command(help='Display a live stream of jobs(s) statistics')

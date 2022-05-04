@@ -18,7 +18,7 @@ def clusters() -> None:
 @clusters.command(help='List clusters')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().get_clusters())
+    ctx.write(ctx.upsolver_api().get_clusters_raw())
 
 
 @clusters.command(help='Display a live stream of cluster(s) usage statistics')

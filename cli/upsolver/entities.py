@@ -22,6 +22,8 @@ class Cluster:
 class Table:
     id: str
     name: str
+    compression: str
+    is_running: bool
 
 
 @dataclass
