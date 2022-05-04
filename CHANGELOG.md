@@ -8,6 +8,13 @@
 
 ### `execute` sub command
 
+- You can now pass a path to a file and it will execute it. Now you have two options for execute script files:
+
+```
+$ upsolver execute commands.sql
+$ cat commands.sql | upsolver execute -
+```
+
 - Execution of multiple statements now outputs "markers" that separate results of different queries. With this you can use other tools to parse the results and attribute them to specific queries. Example output:
 
 ```
