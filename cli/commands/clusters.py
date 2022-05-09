@@ -36,14 +36,6 @@ def stats(ctx: CliContext, clusters: list[str]) -> None:
     )
 
 
-@clusters.command(help='Export a certain cluster as a "CREATE CLUSTER" sql command that can be '
-                       'used in an "upsolver execute" command')
-@click.pass_obj
-@click.argument('cluster', nargs=1)
-def export(ctx: CliContext, cluster: str) -> None:
-    ctx.echo(ctx.upsolver_api().export_cluster(cluster))
-
-
 @clusters.command(help='Stop a cluster')
 @click.pass_obj
 @click.argument('cluster', nargs=1)

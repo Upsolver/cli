@@ -18,10 +18,6 @@ class ClustersApi(RawClustersApi):
         pass
 
     @abstractmethod
-    def export_cluster(self, cluster: str) -> str:
-        pass
-
-    @abstractmethod
     def stop_cluster(self, cluster: str) -> None:
         pass
 
@@ -51,9 +47,6 @@ class RestClustersApi(ClustersApi):
 
     def get_clusters_raw(self) -> list[dict[Any, Any]]:
         return self.requester.get_list('environments/dashboard')
-
-    def export_cluster(self, cluster: str) -> str:
-        raise NotImplementedError()
 
     def stop_cluster(self, cluster: str) -> None:
         self.requester.put(f'environments/stop/{self._get_cluster_id(cluster)}')
