@@ -99,7 +99,7 @@ def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
 
             w.writeheader()
             for x in dicts:
-                w.writerow(to_dict(x))
+                w.writerow(x)
             return o.getvalue()
 
     return partial(fmt_any, fmt_list=fmt_list)
