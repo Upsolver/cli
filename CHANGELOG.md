@@ -1,3 +1,10 @@
+# v0.1.5
+- removed `export` option for `clusters` sub-command.
+
+- fixed a bug related to CSV output formatting.
+
+- `--version` now shows correct version
+
 # v0.1.4
 - `ls` sub-commands now return "raw" responses from the API. Prior to this the responses were converted to simplified objects, which missed a lot of info. These simplified objects are still used in the `stats` screens but need some work to show useful info.
 
