@@ -3,8 +3,8 @@ class UpsolverCli < Formula
 
   desc "CLI for Upsolver with auto-completion and syntax highlighting"
   homepage "https://upsolver.com/"
-  url "https://github.com/Upsolver/cli/releases/download/v0.1.5/upsolver-cli.tar.gz"
-  sha256 "38857f3028e73edd6be9cf38028aec92c7e9af1e11f2c97bedb7ed0382cb4b40"
+  url "https://github.com/Upsolver/cli/releases/download/v0.1.6/upsolver-cli.tar.gz"
+  sha256 "ffdf0ffb547fc30f8c2259ced6c7285ed9537e7356fc9cbedc115ae1169044ca"
   license "MIT"
 
   depends_on "poetry" => :build
