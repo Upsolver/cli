@@ -84,12 +84,16 @@ def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
         if len(xs) == 0:
             return ''
 
+        dicts = [to_dict(x) for x in xs]
+        keys = set().union(*dicts)
+
         with io.StringIO() as o:
             w = csv.DictWriter(
                 o,
                 delimiter=delimiter,
-                fieldnames=list(to_dict(xs[0])),
-                quoting=csv.QUOTE_NONNUMERIC
+                fieldnames=keys,
+                quoting=csv.QUOTE_NONNUMERIC,
+                restval="<null>"
             )
 
             w.writeheader()
