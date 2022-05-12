@@ -30,7 +30,8 @@ jobs:
       - name: Extract Change Notes
         id: extract_changes
         run: |
-          CHANGES=$(sed -n "/^# ${{ steps.release-version.outputs.full }}$/,/^# /p" CHANGELOG.md  | grep -E "^(-|\s+)")
+          CHANGES=$(sed -n "/^# ${{ steps.release-version.outputs.full }}$/,/^# /p" CHANGELOG.md  | grep -E '^(-|\s+)')
+          echo $CHANGES
           if [ -z $CHANGES ]; then
             echo "::set-output name=ok::false"
           else
@@ -63,11 +64,6 @@ jobs:
         run: |
           poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver-cli.tar.gz" --compute-hash-from-file dist/cli-${{ steps.release-version.outputs.simple }}.tar.gz
 
-      - name: Commit updated homebrew formula & version files
-        run: |
-          git commit -am "Release ${{ steps.release-version.outputs.full }}"
-          git push origin HEAD:master
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -87,9 +83,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
+          asset_path: ./dist/cli-${{ steps.release-version.outputs.simple }}.tar.gz
           asset_name: upsolver-cli.tar.gz
           asset_content_type: application/tar+gz
+
+      - name: Commit updated homebrew formula & version files
+        run: |
+          git commit -am "Release ${{ steps.release-version.outputs.full }}"
+          git push origin HEAD:master
 
       - name: Checkout Samples repo
         uses: actions/checkout@v2
