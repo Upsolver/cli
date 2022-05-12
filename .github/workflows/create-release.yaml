@@ -39,6 +39,7 @@ jobs:
           fi
 
       - name: Fail on Empty Changelog
+        uses: actions/github-script@v3
         if: ${{ steps.extract_changes.outputs.ok != 'true' }}
         with:
           scripts: |
