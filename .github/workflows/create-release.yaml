@@ -18,8 +18,8 @@ jobs:
       - name: Determine Version
         id: release-version
         run: |
-          echo "::set-output name=full::${{ github.ref }}"
-          SIMPLE=$(echo ${{ github.ref }} | sed -e s/^v//)
+          echo "::set-output name=full::${{ github.ref_name }}"
+          SIMPLE=$(echo ${{ github.ref_name }} | sed -e s/^v//)
           echo "::set-output name=simple::$SIMPLE"
 
       - name: Update Version
