@@ -10,6 +10,63 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Configure GIT
+        run: |
+          git config --global user.email "upsolver-cli-bot@github.com"
+          git config --global user.name "CLI Release Github Bot"
+
+      - name: Determine Version
+        id: release-version
+        run: |
+          echo "::set-output name=full::${{ github.ref }}"
+          SIMPLE=$(echo ${{ github.ref }} | sed -e s/^v//)
+          echo "::set-output name=simple::$SIMPLE"
+
+      - name: Update Version
+        run: |
+          sed -i '' -e "s/.*__version__.*/__version__ = '${{ steps.release-version.outputs.simple }}'/g" cli/__init__.py
+          sed -i '' -e "s/.*version =.*/version = \"${{ steps.release-version.outputs.simple }}\"/g" pyproject.toml
+
+      - name: Extract Change Notes
+        id: extract_changes
+        run: |
+          CHANGES=$(sed -n "/^# ${{ steps.release-version.outputs.full }}$/,/^# /p" CHANGELOG.md  | grep -E "^(-|\s+)")
+          if [ -z $CHANGES ]; then
+            echo "::set-output name=ok::false"
+          else
+            echo "::set-output name=ok::true"
+            echo "::set-output name=changes::=$CHANGES"
+          fi
+
+      - name: Fail on Empty Changelog
+        if: ${{ steps.extract_changes.outputs.ok != 'true' }}
+        with:
+          scripts: |
+            core.setFailed('Must have a section for ${{ steps.release-version.outputs.full }} in CHANGELOG.md')
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.x
+
+      - name: Install Poetry
+        run: |
+          pip install poetry==1.1.13
+          poetry install
+
+      - name: Build Release Archive
+        id: build-archive
+        run: |
+          poetry build
+
+      - name: Generate homebrew formula
+        run: |
+          poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver-cli.tar.gz" --compute-hash-from-file dist/cli-${{ steps.release-version.outputs.simple }}.tar.gz
+
+      - name: Commit updated homebrew formula & version files
+        run: |
+          git commit -am "Release ${{ steps.release-version.outputs.full }}"
+          git push origin HEAD:master
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -18,20 +75,10 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
+          body: |
+            ${{ steps.extract_changes.outputs.changes }}
           draft: false
           prerelease: false
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.10.x
-
-      - name: Build Release Archive
-        id: build-archive
-        run: |
-          pip install poetry==1.1.13
-          poetry install
-          poetry build
-          echo "::set-output name=version::$(poetry run python scripts/echo-version.py)"
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -42,21 +89,6 @@ jobs:
           asset_path: ./dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
           asset_name: upsolver-cli.tar.gz
           asset_content_type: application/tar+gz
-
-      - name: Configure GIT
-        run: |
-          git config --global user.email "upsolver-cli-bot@github.com"
-          git config --global user.name "CLI Release Github Bot"
-
-      - name: Generate homebrew formula
-        run: |
-          poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver-cli.tar.gz" --compute-hash-from-file dist/cli-${{ steps.build-archive.outputs.version }}.tar.gz
-
-      - name: Commit updated homebrew formula
-        run: |
-          git add ./Formula/upsolver-cli.rb
-          git commit -m "updated homebrew formula"
-          git push origin HEAD:master
 
       - name: Checkout Samples repo
         uses: actions/checkout@v2
