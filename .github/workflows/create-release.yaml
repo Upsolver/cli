@@ -30,7 +30,7 @@ jobs:
       - name: Extract Change Notes
         id: extract_changes
         run: |
-          CHANGES=$(sed -n "/^# ${{ steps.release-version.outputs.full }}$/,/^# /p" CHANGELOG.md  | grep -E '^(-|\s+)')
+          CHANGES=$(sed -n "/^# ${{ steps.release-version.outputs.full }}$/,/^# /p" CHANGELOG.md  | sed '$ d')
           echo "CHANGES<<EOF" >> $GITHUB_ENV
           echo "$CHANGES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
