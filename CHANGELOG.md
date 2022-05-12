@@ -1,3 +1,7 @@
+# v0.1.6
+- csv output format now flattens complex objects (object 'a' with nested objected 'b' will show up as "a.b" column).
+- csv output columns are now sorted alphabetically.
+
 # v0.1.5
 - removed `export` option for `clusters` sub-command.
 
