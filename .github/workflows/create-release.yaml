@@ -24,6 +24,8 @@ jobs:
 
       - name: Update Version
         run: |
+          pwd
+          ls
           sed -i '' -e "s/.*__version__.*/__version__ = '${{ steps.release-version.outputs.simple }}'/g" cli/__init__.py
           sed -i '' -e "s/.*version =.*/version = \"${{ steps.release-version.outputs.simple }}\"/g" pyproject.toml
 
