@@ -27,8 +27,8 @@ jobs:
           pwd
           ls cli
           echo "SIMPLE_VERSION == ${{ steps.release-version.outputs.simple }}"
-          sed -i '' -e "s/.*__version__.*/__version__ = '${{ steps.release-version.outputs.simple }}'/g" cli/__init__.py
-          sed -i '' -e "s/.*version =.*/version = \"${{ steps.release-version.outputs.simple }}\"/g" pyproject.toml
+          sed -i -e "s/.*__version__.*/__version__ = '${{ steps.release-version.outputs.simple }}'/g" cli/__init__.py
+          sed -i -e "s/.*version =.*/version = \"${{ steps.release-version.outputs.simple }}\"/g" pyproject.toml
 
       - name: Extract Change Notes
         id: extract_changes
