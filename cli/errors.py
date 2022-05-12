@@ -7,7 +7,6 @@ from typing import Any, Optional
 
 from yarl import URL
 
-from cli.formatters import OutputFmt
 from cli.upsolver.requester import UpsolverResponse
 
 
@@ -106,7 +105,7 @@ class NotImplementedErr(InternalErr):
 
 
 class FormattingErr(InternalErr):
-    def __init__(self, v: Any, desired_fmt: OutputFmt) -> None:
+    def __init__(self, v: Any, desired_fmt: str) -> None:
         """
         :param v: The value which caused the formatting error
         """

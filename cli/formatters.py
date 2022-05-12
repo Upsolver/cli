@@ -10,6 +10,7 @@ from typing import Any, Callable, Optional
 from tabulate import tabulate
 
 from cli import errors
+from cli.utils import flatten
 
 Formatter = Callable[[Any], str]
 
@@ -73,7 +74,7 @@ def fmt_any(x: Any, fmt_list: Callable[[list[Any]], str]) -> str:
 def to_dict_or_raise(x: Any, desired_fmt: OutputFmt) -> dict[Any, Any]:
     maybe_dict = to_dict_maybe(x)
     if maybe_dict is None:
-        raise errors.FormattingErr(v=x, desired_fmt=desired_fmt)
+        raise errors.FormattingErr(v=x, desired_fmt=desired_fmt.name)
     return maybe_dict
 
 
@@ -84,8 +85,8 @@ def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
         if len(xs) == 0:
             return ''
 
-        dicts = [to_dict(x) for x in xs]
-        keys = set().union(*dicts)
+        dicts = [flatten(to_dict(x)) for x in xs]
+        keys = sorted(set().union(*dicts))
 
         with io.StringIO() as o:
             w = csv.DictWriter(
@@ -97,7 +98,7 @@ def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
             )
 
             w.writeheader()
-            for x in xs:
+            for x in dicts:
                 w.writerow(to_dict(x))
             return o.getvalue()
 

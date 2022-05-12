@@ -61,6 +61,27 @@ def parse_url(url: Optional[str]) -> Optional[URL]:
             return URL('https://' + url)
 
 
+def flatten(d: dict[str, Any], parent: Optional[str] = None, sep: str = '.') -> dict[str, Any]:
+    """
+    flatten({'a': {'b': {'c': 1}}, 'd': {'e': [1, 2, 3]}, 'f': 'foo'})
+    returns
+    {'a.b.c': 1, 'd.e': [1, 2, 3], 'f': 'foo'}
+
+    :param d: dictionary to flatten
+    :param parent: name of parent key; used for recursion
+    :param sep: separator between concatenated key names
+    :return: flattened dictionary
+    """
+    items: list[tuple[str, Any]] = []
+    for k, v in d.items():
+        new_key = f'{parent}{sep}{k}' if parent is not None else k
+        if type(v) is dict:
+            items.extend(flatten(v, parent=new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
 class NestedDictAccessor(object):
     def __init__(self, d: dict[Any, Any]) -> None:
         self.d = d
