@@ -31,22 +31,9 @@ jobs:
         id: extract_changes
         run: |
           CHANGES=$(sed -n "/^# ${{ steps.release-version.outputs.full }}$/,/^# /p" CHANGELOG.md  | grep -E '^(-|\s+)')
-          echo $CHANGES
-          if [ -z $CHANGES ]; then
-            echo "::set-output name=ok::false"
-          else
-            echo "::set-output name=ok::true"
-            echo "CHANGES<<EOF" >> $GITHUB_ENV
-            echo "$CHANGES" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          fi
-
-      - name: Fail on Empty Changelog
-        uses: actions/github-script@v3
-        if: ${{ steps.extract_changes.outputs.ok != 'true' }}
-        with:
-          scripts: |
-            core.setFailed('Must have a section for ${{ steps.release-version.outputs.full }} in CHANGELOG.md')
+          echo "CHANGES<<EOF" >> $GITHUB_ENV
+          echo "$CHANGES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - uses: actions/setup-python@v2
         with:
