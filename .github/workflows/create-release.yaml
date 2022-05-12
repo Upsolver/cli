@@ -36,7 +36,9 @@ jobs:
             echo "::set-output name=ok::false"
           else
             echo "::set-output name=ok::true"
-            echo "::set-output name=changes::=$CHANGES"
+            echo "CHANGES<<EOF" >> $GITHUB_ENV
+            echo "$CHANGES" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
           fi
 
       - name: Fail on Empty Changelog
@@ -73,7 +75,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
           body: |
-            ${{ steps.extract_changes.outputs.changes }}
+            ${{ env.CHANGES }}
           draft: false
           prerelease: false
 
