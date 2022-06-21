@@ -13,12 +13,12 @@ from cli.upsolver.entities import Catalog, Cluster, Job
 @dataclass_json
 @dataclass
 class DisplayData:
-    modified_by: str = field(metadata=config(field_name='modifiedBy'))
-    modified_time: str = field(metadata=config(field_name='modifiedTime'))
     created_by: str = field(metadata=config(field_name='createdBy'))
     creation_time: str = field(metadata=config(field_name='creationTime'))
     desc: str = field(metadata=config(field_name='description'))
     name: str
+    modified_by: Optional[str] = field(metadata=config(field_name='modifiedBy'), default=None)
+    modified_time: Optional[str] = field(metadata=config(field_name='modifiedTime'), default=None)
 
 
 @dataclass_json
