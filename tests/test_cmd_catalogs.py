@@ -33,11 +33,11 @@ output = JSON''')
     c = Catalog(id='id0', name='c0', created_by='bob', kind='S3', org_id='orgid0')
 
     api = mocker.MagicMock()
-    api.get_catalogs_raw = mocker.MagicMock(
-        return_value=[c]
+    api.catalogs.raw.get = mocker.MagicMock(
+        return_value=[c.to_dict()]
     )
 
     with patch.object(ctx, 'upsolver_api', return_value=api):
         result = runner.invoke(catalogs, ['ls'], obj=ctx)
-        api.get_catalogs_raw.assert_called_once()
+        api.catalogs.raw.get.assert_called_once()
         assert result.stdout == ctx.confman.get_formatter()(c) + '\n'

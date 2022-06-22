@@ -21,7 +21,7 @@ def login(ctx: CliContext, email: str, password: str, base_url: Optional[str]) -
     updated_profile = profile_auth_settings.update(ctx.confman.conf.active_profile)
     ctx.confman.update_profile(updated_profile)
 
-    ctx.echo(
+    ctx.write(
         f'Successfully configured profile \'{updated_profile.name}\' '
         f'(API access token: {updated_profile.token})'
     )

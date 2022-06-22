@@ -5,6 +5,7 @@ import click
 from cli.commands.context import CliContext
 from cli.ui import stats_screen
 from cli.upsolver import entities
+from cli.utils import find_by_name_or_id
 
 
 @click.group()
@@ -18,19 +19,19 @@ def tables() -> None:
 @tables.command(help='List clusters')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().get_tables_raw())
+    ctx.write(ctx.upsolver_api().tables.raw.get())
 
 
 @tables.command(help='Display a live stream of table(s) statistics')
 @click.pass_obj
 @click.argument('tables', nargs=-1)
 def stats(ctx: CliContext, tables: list[str]) -> None:
-    api = ctx.upsolver_api()
+    tables_api = ctx.upsolver_api().tables
     stats_screen(
         title='Table Stats',
         headers=[f.name for f in dataclasses.fields(entities.Table)],
         get_values=lambda: [
-            t for t in api.get_tables()
+            t for t in tables_api.get()
             if (len(tables) == 0) or (t.name in tables)
         ]
     )
@@ -41,11 +42,13 @@ def stats(ctx: CliContext, tables: list[str]) -> None:
 @click.pass_obj
 @click.argument('table', nargs=1)
 def export(ctx: CliContext, table: str) -> None:
-    ctx.echo(ctx.upsolver_api().export_table(table))
+    tables_api = ctx.upsolver_api().tables
+    ctx.write(tables_api.export(find_by_name_or_id(table, tables_api.get()).id))
 
 
 @tables.command(help='Display the partitions of a given table')
 @click.pass_obj
 @click.argument('table', nargs=1)
 def partitions(ctx: CliContext, table: str) -> None:
-    ctx.write(ctx.upsolver_api().get_table_partitions(table))
+    tables_api = ctx.upsolver_api().tables
+    ctx.write(tables_api.get_partitions(find_by_name_or_id(table, tables_api.get()).id))

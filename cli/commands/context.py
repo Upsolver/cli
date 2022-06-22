@@ -107,9 +107,6 @@ class CliContext(object):
             file=sys.stdout
         )
 
-    def echo(self, msg: str) -> None:
-        echo(msg)
-
     def exit(self, msg: str, code: int) -> None:
         echo(err=True, message=msg)
         sys.exit(code)

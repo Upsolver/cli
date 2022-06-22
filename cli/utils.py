@@ -1,7 +1,7 @@
 import logging
 from logging import Logger
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Dict, Optional, Protocol, TypeVar
 
 import click
 from yarl import URL
@@ -104,3 +104,34 @@ class NestedDictAccessor(object):
 # Protocol == structural typing support (https://peps.python.org/pep-0544/)
 class AnyDataclass(Protocol):
     __dataclass_fields__: Dict[Any, Any]
+
+
+class HasId(Protocol):
+    id: str
+
+
+class HasNameAndId(Protocol):
+    id: str
+    name: str
+
+
+THasNameAndId = TypeVar('THasNameAndId', bound='HasNameAndId')
+
+
+def find_by_name_or_id(name_or_id: str, ls: list[THasNameAndId]) -> THasNameAndId:
+    for x in ls:
+        if x.name == name_or_id or x.id == name_or_id:
+            return x
+
+    raise errors.EntityNotFound(name_or_id, [f'(id={x.id}, name={x.name}]' for x in ls])
+
+
+THasId = TypeVar('THasId', bound='HasId')
+
+
+def find_by_id(id: str, ls: list[THasId]) -> THasId:
+    for x in ls:
+        if x.id == id:
+            return x
+
+    raise errors.EntityNotFound(id, [x.id for x in ls])

@@ -1,53 +1,81 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any
 
 from cli import errors
 from cli.upsolver.entities import Table, TablePartition
 from cli.upsolver.requester import Requester
+from cli.utils import find_by_id
+
+TableId = str
 
 
-class RawTablesApi(metaclass=ABCMeta):
+class RawTablesApi(ABC):
     @abstractmethod
-    def get_tables_raw(self) -> list[dict[Any, Any]]:
+    def get(self) -> list[dict[Any, Any]]:
         pass
 
 
-class TablesApi(RawTablesApi):
+class RawTablesApiProvider(ABC):
+    @property
     @abstractmethod
-    def get_tables(self) -> list[Table]:
-        pass
-
-    @abstractmethod
-    def export_table(self, table: str) -> str:
-        pass
-
-    @abstractmethod
-    def get_table_partitions(self, table: str) -> list[TablePartition]:
+    def raw(self) -> RawTablesApi:
         pass
 
 
-class RestTablesApi(TablesApi):
+class TablesApi(RawTablesApiProvider):
+    @abstractmethod
+    def get(self) -> list[Table]:
+        pass
+
+    @abstractmethod
+    def export(self, table_id: TableId) -> str:
+        pass
+
+    @abstractmethod
+    def get_partitions(self, table_id: TableId) -> list[TablePartition]:
+        pass
+
+
+class TablesApiProvider(ABC):
+    @property
+    @abstractmethod
+    def tables(self) -> TablesApi:
+        pass
+
+
+class RawRestTablesApi(RawTablesApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def get_tables(self) -> list[Table]:
-        return [t.to_table() for t in self.requester.get_tables()]
-
-    def get_tables_raw(self) -> list[dict[Any, Any]]:
+    def get(self) -> list[dict[Any, Any]]:
         return self.requester.get_list('tables')
 
-    def export_table(self, table: str) -> str:
+
+class RestTablesApi(TablesApi, TablesApiProvider):
+    def __init__(self, requester: Requester):
+        self.requester = requester
+        self.raw_api = RawRestTablesApi(self.requester)
+
+    @property
+    def tables(self) -> TablesApi:
+        return self
+
+    @property
+    def raw(self) -> RawTablesApi:
+        return self.raw_api
+
+    def get(self) -> list[Table]:
+        return [t.to_table() for t in self.requester.get_tables()]
+
+    def export(self, table_id: TableId) -> str:
         raise errors.NotImplementedErr()
 
-    def get_table_partitions(self, table: str) -> list[TablePartition]:
-        for raw_table in self.requester.get_tables():
-            if raw_table.display_data.name == table:
-                return [
-                    TablePartition(
-                        table_name=raw_table.display_data.name,
-                        name=partition.name
-                    )
-                    for partition in raw_table.partitions_columns
-                ]
-
-        return []  # didn't find a table with a matching name
+    def get_partitions(self, table_id: TableId) -> list[TablePartition]:
+        table = find_by_id(table_id, self.requester.get_tables())
+        return [
+            TablePartition(
+                table_name=table.display_data.name,
+                name=partition.name
+            )
+            for partition in table.partitions_columns
+        ]

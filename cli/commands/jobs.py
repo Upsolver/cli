@@ -5,6 +5,7 @@ import click
 from cli.commands.context import CliContext
 from cli.ui import stats_screen
 from cli.upsolver.entities import Job
+from cli.utils import find_by_name_or_id
 
 
 @click.group()
@@ -18,19 +19,19 @@ def jobs() -> None:
 @jobs.command(help='List jobs')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().get_jobs_raw())
+    ctx.write(ctx.upsolver_api().jobs.raw.get())
 
 
 @jobs.command(help='Display a live stream of jobs(s) statistics')
 @click.pass_obj
 @click.argument('jobs', nargs=-1)
 def stats(ctx: CliContext, jobs: list[str]) -> None:
-    api = ctx.upsolver_api()
+    jobs_api = ctx.upsolver_api().jobs
     stats_screen(
         title='Job Stats',
         headers=[f.name for f in dataclasses.fields(Job)],
         get_values=lambda: [
-            j for j in api.get_jobs()
+            j for j in jobs_api.get()
             if (len(jobs) == 0) or (j.name in jobs)
         ]
     )
@@ -41,4 +42,5 @@ def stats(ctx: CliContext, jobs: list[str]) -> None:
 @click.pass_obj
 @click.argument('job', nargs=1)
 def export(ctx: CliContext, job: str) -> None:
-    ctx.echo(ctx.upsolver_api().export_job(job))
+    jobs_api = ctx.upsolver_api().jobs
+    ctx.write(jobs_api.export(find_by_name_or_id(job, jobs_api.get()).id))

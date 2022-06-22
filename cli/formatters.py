@@ -60,6 +60,8 @@ def fmt_json(x: Any) -> str:
 
     if type(x) is list:
         return '\n'.join([dumps(xx) for xx in x])
+    elif type(x) is str:
+        return x
     else:
         return dumps(x)
 
@@ -67,6 +69,8 @@ def fmt_json(x: Any) -> str:
 def fmt_any(x: Any, fmt_list: Callable[[list[Any]], str]) -> str:
     if type(x) is list:
         return fmt_list(x)
+    elif type(x) is str:
+        return x
     else:
         return fmt_list([x])
 

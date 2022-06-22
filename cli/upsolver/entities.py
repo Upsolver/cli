@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from typing import Any
 
+from dataclasses_json import dataclass_json
 
+
+@dataclass_json
 @dataclass
 class Catalog:
     id: str
@@ -11,6 +14,7 @@ class Catalog:
     org_id: str
 
 
+@dataclass_json
 @dataclass
 class Cluster:
     name: str
@@ -18,6 +22,7 @@ class Cluster:
     running: bool
 
 
+@dataclass_json
 @dataclass
 class Table:
     id: str
@@ -26,14 +31,17 @@ class Table:
     is_running: bool
 
 
+@dataclass_json
 @dataclass
 class TablePartition:
     table_name: str
     name: str
 
 
+@dataclass_json
 @dataclass
 class Job:
+    id: str
     name: str
     status: str
 

@@ -110,6 +110,7 @@ class JobInfo:
 
     def to_job(self) -> Job:
         return Job(
+            id='',  # JobInfo returned from API has no id...
             name=self.name,
             status=self.status
         )
