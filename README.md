@@ -131,3 +131,16 @@ Options:
   --formula-out-path TEXT
   --help                         Show this message and exit.
 ```
+
+### Releasing a New Version
+Assuming you wish to create a new release with version X.Y.Z:
+
+- Create an entry (& commit) in `CHANGELOG.md` with the headline `# vX.Y.Z`. This section will be extracted by the github release workflow and be used as the description of the release.
+- Create & push tag `vX.Y.Z`:
+
+```commandline
+git tag vX.Y.Z
+git push origin --tags
+```
+
+This will trigger the github release workflow (`.github/workflows/create-release.yaml`)
