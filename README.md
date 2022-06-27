@@ -81,7 +81,7 @@ pyenv global 3.10.0
 
 ```commandline
 brew install poetry
-poetry install
+poetry install # Run this in the projcet root
 ```
 
 You can now use `poetry`s shell or `poetry run` command:
