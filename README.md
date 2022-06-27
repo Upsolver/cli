@@ -85,7 +85,7 @@ poetry install # Run this in the projcet root
 ```
 ### Use the package properly
 To verify that the project is ran with the right python and dependencies version, it's recommended to run the `main.py` in `poetry shell`.
-You can now use `poetry`s shell or `poetry run` command:
+You can now use `poetry`s shell or `poetry run` command (In the root folder):
 ```commandline
 poetry shell
 cli/main.py
