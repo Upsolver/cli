@@ -20,6 +20,7 @@ from cli.commands.execute import execute
 from cli.commands.jobs import jobs
 from cli.commands.login import login
 from cli.commands.tables import tables
+from cli.commands.worksheets import worksheets
 from cli.config import ConfigurationManager
 
 
@@ -57,6 +58,7 @@ cli.add_command(clusters)
 cli.add_command(catalogs)
 cli.add_command(tables)
 cli.add_command(jobs)
+cli.add_command(worksheets)
 
 
 def exit_with(code: errors.ExitCode, msg: str) -> None:

@@ -5,7 +5,7 @@ from typing import Generic, Optional, TypeVar
 from dataclasses_json import config, dataclass_json
 
 from cli.upsolver import entities
-from cli.upsolver.entities import ApiEntity, Catalog, Cluster, Job
+from cli.upsolver.entities import ApiEntity, Catalog, Cluster, Job, Worksheet
 
 TApiEntity = TypeVar('TApiEntity', bound='ApiEntity')
 
@@ -125,4 +125,23 @@ class JobInfo(RawEntity[Job]):
             id='',  # JobInfo returned from API has no id...
             name=self.name,
             status=self.status
+        )
+
+
+@dataclass_json
+@dataclass
+class WorksheetUri:
+    id: str
+
+
+@dataclass_json
+@dataclass
+class WorksheetView(RawEntity[Worksheet]):
+    uri: str
+    title: str = field(metadata=config(field_name='name'))
+
+    def to_api_entity(self) -> Worksheet:
+        return Worksheet(
+            id=self.uri,  # JobInfo returned from API has no id...
+            title=self.title
         )

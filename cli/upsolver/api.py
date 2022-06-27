@@ -7,6 +7,7 @@ from cli.upsolver.jobs import JobsApiProvider
 from cli.upsolver.lsp import LspApi
 from cli.upsolver.query import QueryApi
 from cli.upsolver.tables import TablesApiProvider
+from cli.upsolver.worksheets import WorksheetsApiProvider
 
 """
 General pattern you'll see here:
@@ -69,6 +70,7 @@ class UpsolverApi(
     TablesApiProvider,
     QueryApi,
     LspApi,
+    WorksheetsApiProvider,
     ABC
 ):
     pass

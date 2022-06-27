@@ -10,6 +10,7 @@ from cli.upsolver.poller import SimpleResponsePoller
 from cli.upsolver.query import RestQueryApi
 from cli.upsolver.requester import Requester
 from cli.upsolver.tables import RestTablesApi
+from cli.upsolver.worksheets import RestWorksheetsApi
 
 
 def build_upsolver_api(requester: Requester) -> UpsolverApi:
@@ -26,6 +27,7 @@ def build_upsolver_api(requester: Requester) -> UpsolverApi:
         RestTablesApi(requester),
         RestQueryApi(requester, lambda timeout_sec: SimpleResponsePoller(max_time_sec=timeout_sec)),
         FakeLspApi(),
+        RestWorksheetsApi(requester)
     ]
 
     class UpsolverApiImpl:

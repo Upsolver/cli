@@ -58,6 +58,13 @@ class Job(ApiEntity):
     status: str
 
 
+@dataclass_json
+@dataclass
+class Worksheet(ApiEntity):
+    id: str
+    title: str
+
+
 ExecutionResult = list[dict[Any, Any]]
 ExecutionErr = Exception
 NextResultPath = str  # results are paged, with "next pointer" being a path of url
