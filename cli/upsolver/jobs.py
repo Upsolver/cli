@@ -1,17 +1,23 @@
+import builtins
 from abc import ABC, abstractmethod
 from typing import Any
 
 from cli import errors
 from cli.upsolver.entities import Job
+from cli.upsolver.raw_entities import JobInfo
 from cli.upsolver.requester import Requester
+from cli.utils import from_dict
 
 JobId = str
 
 
 class RawJobsApi(ABC):
     @abstractmethod
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         pass
+
+    def list_jobs_info(self) -> builtins.list[JobInfo]:
+        return [from_dict(JobInfo, ji) for ji in self.list()]
 
 
 class RawJobsApiProvider(ABC):
@@ -22,9 +28,8 @@ class RawJobsApiProvider(ABC):
 
 
 class JobsApi(RawJobsApiProvider):
-    @abstractmethod
-    def get(self) -> list[Job]:
-        pass
+    def list(self) -> list[Job]:
+        return [ji.to_api_entity() for ji in self.raw.list_jobs_info()]
 
     @abstractmethod
     def export(self, job_id: JobId) -> str:
@@ -42,8 +47,8 @@ class RawRestJobsApi(RawJobsApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def get(self) -> list[dict[Any, Any]]:
-        return self.requester.get_list('jobs')
+    def list(self) -> list[dict[str, Any]]:
+        return self.requester.get_list('jobs', list_field_name='jobs')
 
 
 class RestJobsApi(JobsApi, JobsApiProvider):
@@ -58,9 +63,6 @@ class RestJobsApi(JobsApi, JobsApiProvider):
     @property
     def raw(self) -> RawJobsApi:
         return self.raw_api
-
-    def get(self) -> list[Job]:
-        return [ji.to_job() for ji in self.requester.get_jobs()]
 
     def export(self, job_id: JobId) -> str:
         resp = self.requester.get(f'inspections/describe/%2Fjobs%2F{job_id}')

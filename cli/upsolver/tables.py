@@ -1,18 +1,23 @@
+import builtins
 from abc import ABC, abstractmethod
 from typing import Any
 
 from cli import errors
+from cli.upsolver import raw_entities
 from cli.upsolver.entities import Table, TablePartition
 from cli.upsolver.requester import Requester
-from cli.utils import find_by_id
+from cli.utils import find_by_id, from_dict
 
 TableId = str
 
 
 class RawTablesApi(ABC):
     @abstractmethod
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         pass
+
+    def list_tables(self) -> builtins.list[raw_entities.Table]:
+        return [from_dict(raw_entities.Table, t) for t in self.list()]
 
 
 class RawTablesApiProvider(ABC):
@@ -23,16 +28,15 @@ class RawTablesApiProvider(ABC):
 
 
 class TablesApi(RawTablesApiProvider):
-    @abstractmethod
-    def get(self) -> list[Table]:
-        pass
+    def list(self) -> list[Table]:
+        return [t.to_api_entity() for t in self.raw.list_tables()]
 
     @abstractmethod
     def export(self, table_id: TableId) -> str:
         pass
 
     @abstractmethod
-    def get_partitions(self, table_id: TableId) -> list[TablePartition]:
+    def get_partitions(self, table_id: TableId) -> builtins.list[TablePartition]:
         pass
 
 
@@ -47,7 +51,7 @@ class RawRestTablesApi(RawTablesApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         return self.requester.get_list('tables')
 
 
@@ -64,14 +68,11 @@ class RestTablesApi(TablesApi, TablesApiProvider):
     def raw(self) -> RawTablesApi:
         return self.raw_api
 
-    def get(self) -> list[Table]:
-        return [t.to_table() for t in self.requester.get_tables()]
-
     def export(self, table_id: TableId) -> str:
         raise errors.NotImplementedErr()
 
     def get_partitions(self, table_id: TableId) -> list[TablePartition]:
-        table = find_by_id(table_id, self.requester.get_tables())
+        table = find_by_id(table_id, self.raw.list_tables())
         return [
             TablePartition(
                 table_name=table.display_data.name,

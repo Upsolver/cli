@@ -14,13 +14,13 @@ def test_get_catalogs(requests_mock: RequestsMocker, tmp_path: Path) -> None:
     rest_api_mock = MockUpsolverRestApi(requests_mock, tmp_path / 'conf')
     ctx = CliContext(ConfigurationManager(tmp_path / 'conf'))
 
-    catalogs = ctx.upsolver_api().catalogs.get()
+    catalogs = ctx.upsolver_api().catalogs.list()
     assert len(catalogs) == 0
 
     c = Catalog('id0', 'name', 'created_by', 'kind', 'orgid')
     rest_api_mock.add_catalog(c)
 
-    cs = ctx.upsolver_api().catalogs.get()
+    cs = ctx.upsolver_api().catalogs.list()
     assert len(cs) == 1
     assert cs == [c]
 
@@ -32,6 +32,6 @@ def test_get_catalogs_bad_status_code(requests_mock: RequestsMocker, tmp_path: P
     ctx = CliContext(ConfigurationManager(tmp_path / 'conf'))
 
     with pytest.raises(ApiErr) as err:
-        ctx.upsolver_api().catalogs.get()
+        ctx.upsolver_api().catalogs.list()
 
     assert err.value.resp.status_code == 403

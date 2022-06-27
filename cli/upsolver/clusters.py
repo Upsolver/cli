@@ -1,17 +1,22 @@
+import builtins
 from abc import ABC, abstractmethod
 from typing import Any
 
-from cli import errors
 from cli.upsolver.entities import Cluster
+from cli.upsolver.raw_entities import EnvironmentDashboardResponse
 from cli.upsolver.requester import Requester
+from cli.utils import from_dict
 
 ClusterId = str
 
 
 class RawClustersApi(ABC):
     @abstractmethod
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         pass
+
+    def list_environments(self) -> builtins.list[EnvironmentDashboardResponse]:
+        return [from_dict(EnvironmentDashboardResponse, e) for e in self.list()]
 
 
 class RawClustersApiProvider(ABC):
@@ -22,9 +27,8 @@ class RawClustersApiProvider(ABC):
 
 
 class ClustersApi(RawClustersApiProvider):
-    @abstractmethod
-    def get(self) -> list[Cluster]:
-        pass
+    def list(self) -> list[Cluster]:
+        return [env.to_api_entity() for env in self.raw.list_environments()]
 
     @abstractmethod
     def stop(self, cluster_id: ClusterId) -> None:
@@ -50,7 +54,7 @@ class RawRestClustersApi(RawClustersApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         return self.requester.get_list('environments/dashboard')
 
 
@@ -58,14 +62,6 @@ class RestClustersApi(ClustersApi, ClustersApiProvider):
     def __init__(self, requester: Requester):
         self.requester = requester
         self.raw_api = RawRestClustersApi(self.requester)
-
-    def _get_cluster_id(self, cluster_name: str) -> str:
-        available_clusters = self.get()
-        for c in available_clusters:
-            if c.name == cluster_name:
-                return c.id
-
-        raise errors.EntityNotFound(cluster_name, [c.name for c in available_clusters])
 
     @property
     def clusters(self) -> ClustersApi:
@@ -75,17 +71,14 @@ class RestClustersApi(ClustersApi, ClustersApiProvider):
     def raw(self) -> RawClustersApi:
         return self.raw_api
 
-    def get(self) -> list[Cluster]:
-        return [env.to_cluster() for env in self.requester.get_environments()]
-
     def stop(self, cluster_id: ClusterId) -> None:
-        self.requester.put(f'environments/stop/{self._get_cluster_id(cluster_id)}')
+        self.requester.put(f'environments/stop/{cluster_id}')
 
     def run(self, cluster_id: ClusterId) -> None:
-        self.requester.put(f'environments/run/{self._get_cluster_id(cluster_id)}')
+        self.requester.put(f'environments/run/{cluster_id}')
 
     def delete(self, cluster_id: ClusterId) -> None:
         self.requester.patch(
-            path=f'environments/{self._get_cluster_id(cluster_id)}',
+            path=f'environments/{cluster_id}',
             json={'clazz': 'DeleteEnvironment'}
         )

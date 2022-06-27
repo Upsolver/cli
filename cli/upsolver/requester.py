@@ -1,20 +1,13 @@
 import uuid
-from typing import Any, Callable, Optional, Type, TypeVar
+from typing import Any, Callable, Optional
 
 from requests import Request, Response, Session
 from yarl import URL
 
 from cli import errors
-from cli.upsolver import raw_entities
 from cli.upsolver.auth_filler import AuthFiller
-from cli.upsolver.raw_entities import (
-    ConnectionInfo,
-    EnvironmentDashboardResponse,
-    JobInfo,
-    Table,
-)
 from cli.upsolver.response import UpsolverResponse
-from cli.utils import AnyDataclass, get_logger
+from cli.utils import get_logger
 
 """
 ResponseValidator gets a response, checks it, and returns it if everything is ok. If something
@@ -110,21 +103,17 @@ class Requester(object):
     def put(self, path: str) -> UpsolverResponse:
         return self._send(path, Request(method='PUT'))
 
-    def post(self, path: str, json: Optional[dict[Any, Any]] = None) -> UpsolverResponse:
+    def post(self, path: str, json: Optional[dict[str, Any]] = None) -> UpsolverResponse:
         payload = json if json is not None else {}
         return self._send(path, Request(method='POST'), payload)
 
-    def patch(self, path: str, json: Optional[dict[Any, Any]] = None) -> UpsolverResponse:
+    def patch(self, path: str, json: Optional[dict[str, Any]] = None) -> UpsolverResponse:
         payload = json if json is not None else {}
         return self._send(path, Request(method='PATCH'), payload)
 
-    def get_list(self, path: str) -> list[dict[Any, Any]]:
-        lst, _ = self._get_list_and_resp(path)
-        return lst
+    def get_list(self, path: str, list_field_name: Optional[str] = None) -> list[dict[str, Any]]:
+        resp = self.get(path)
 
-    @staticmethod
-    def _get_list(resp: UpsolverResponse, list_field_name: Optional[str] = None) \
-            -> list[dict[Any, Any]]:
         def raise_err() -> None:
             raise errors.PayloadErr(resp, 'expected list of elements')
 
@@ -148,37 +137,3 @@ class Requester(object):
             raise_err()
 
         return []  # placate mypy
-
-    def _get_list_and_resp(self, path: str) -> tuple[list[dict[Any, Any]], UpsolverResponse]:
-        resp = self.get(path)
-        return self._get_list(resp, 'jobs' if 'jobs' in path else None), resp
-
-    T = TypeVar('T', bound=AnyDataclass)
-
-    def _get_list_of(self, path: str, dataclass_type: Type[T]) -> list[T]:
-        """
-        Issues a GET request to retrieve a list of entities, and constructs them from JSON objects.
-
-        :param path:
-        :param ctor: constructs entities from json objects (dictionaries)
-        :return:
-        """
-        entities, resp = self._get_list_and_resp(path)
-        ctor = getattr(dataclass_type, 'from_dict')
-        try:
-            # responses to '/jobs' are special in that the results are mapped to a key ('jobs')
-            return [ctor(e) for e in entities]
-        except Exception:
-            raise errors.PayloadErr(resp, f'Failed to extract list of entities: {resp.text}')
-
-    def get_connections(self) -> list[ConnectionInfo]:
-        return self._get_list_of('connections', ConnectionInfo)
-
-    def get_environments(self) -> list[EnvironmentDashboardResponse]:
-        return self._get_list_of('environments/dashboard', EnvironmentDashboardResponse)
-
-    def get_tables(self) -> list[raw_entities.Table]:
-        return self._get_list_of('tables', Table)
-
-    def get_jobs(self) -> list[JobInfo]:
-        return self._get_list_of('jobs', JobInfo)

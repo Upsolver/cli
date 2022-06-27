@@ -1,7 +1,7 @@
 import logging
 from logging import Logger
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol, TypeVar
+from typing import Any, Dict, Optional, Protocol, Type, TypeVar
 
 import click
 from yarl import URL
@@ -104,6 +104,18 @@ class NestedDictAccessor(object):
 # Protocol == structural typing support (https://peps.python.org/pep-0544/)
 class AnyDataclass(Protocol):
     __dataclass_fields__: Dict[Any, Any]
+
+
+TAnyDataclass = TypeVar('TAnyDataclass', bound=AnyDataclass)
+
+
+def from_dict(tpe: Type[TAnyDataclass], d: dict[str, Any]) -> TAnyDataclass:
+    """
+    mypy complains about
+    "Type[...]" has no attribute "from_dict"
+    when used directly on the type
+    """
+    return getattr(tpe, 'from_dict')(d)
 
 
 class HasId(Protocol):

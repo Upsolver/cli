@@ -19,7 +19,7 @@ def jobs() -> None:
 @jobs.command(help='List jobs')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().jobs.raw.get())
+    ctx.write(ctx.upsolver_api().jobs.raw.list())
 
 
 @jobs.command(help='Display a live stream of jobs(s) statistics')
@@ -31,8 +31,8 @@ def stats(ctx: CliContext, jobs: list[str]) -> None:
         title='Job Stats',
         headers=[f.name for f in dataclasses.fields(Job)],
         get_values=lambda: [
-            j for j in jobs_api.get()
-            if (len(jobs) == 0) or (j.name in jobs)
+            j for j in jobs_api.list()
+            if (len(jobs) == 0) or (j.name in jobs) or (j.id in jobs)
         ]
     )
 
@@ -43,4 +43,4 @@ def stats(ctx: CliContext, jobs: list[str]) -> None:
 @click.argument('job', nargs=1)
 def export(ctx: CliContext, job: str) -> None:
     jobs_api = ctx.upsolver_api().jobs
-    ctx.write(jobs_api.export(find_by_name_or_id(job, jobs_api.get()).id))
+    ctx.write(jobs_api.export(find_by_name_or_id(job, jobs_api.list()).id))

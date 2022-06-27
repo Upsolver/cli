@@ -1,12 +1,24 @@
+from abc import ABC
 from dataclasses import dataclass
 from typing import Any
 
 from dataclasses_json import dataclass_json
 
 
+class ApiEntity(ABC):
+    """
+    Represents objects that are return from the API.
+
+    Unlike "raw entities", ApiEntities are more suitable for the semantics used in CLI code.
+    (e.g. EnvironmentDashboardResponse is mapped to Cluster, and often the ApiEntities will be
+     more simple, i.e. contain only the relevant data for the CLI).
+    """
+    pass
+
+
 @dataclass_json
 @dataclass
-class Catalog:
+class Catalog(ApiEntity):
     id: str
     name: str
     created_by: str
@@ -16,7 +28,7 @@ class Catalog:
 
 @dataclass_json
 @dataclass
-class Cluster:
+class Cluster(ApiEntity):
     name: str
     id: str
     running: bool
@@ -24,7 +36,7 @@ class Cluster:
 
 @dataclass_json
 @dataclass
-class Table:
+class Table(ApiEntity):
     id: str
     name: str
     compression: str
@@ -33,14 +45,14 @@ class Table:
 
 @dataclass_json
 @dataclass
-class TablePartition:
+class TablePartition(ApiEntity):
     table_name: str
     name: str
 
 
 @dataclass_json
 @dataclass
-class Job:
+class Job(ApiEntity):
     id: str
     name: str
     status: str

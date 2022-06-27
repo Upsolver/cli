@@ -1,18 +1,23 @@
+import builtins
 from abc import ABC, abstractmethod
 from typing import Any
 
 from cli import errors
 from cli.upsolver.entities import Catalog
+from cli.upsolver.raw_entities import ConnectionInfo
 from cli.upsolver.requester import Requester
-from cli.utils import find_by_id
+from cli.utils import find_by_id, from_dict
 
 CatalogId = str
 
 
 class RawCatalogsApi(ABC):
     @abstractmethod
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         pass
+
+    def list_connections_info(self) -> builtins.list[ConnectionInfo]:
+        return [from_dict(ConnectionInfo, ci) for ci in self.list()]
 
 
 class RawCatalogsApiProvider(ABC):
@@ -23,9 +28,8 @@ class RawCatalogsApiProvider(ABC):
 
 
 class CatalogsApi(RawCatalogsApiProvider):
-    @abstractmethod
-    def get(self) -> list[Catalog]:
-        pass
+    def list(self) -> list[Catalog]:
+        return [ci.to_api_entity() for ci in self.raw.list_connections_info()]
 
     @abstractmethod
     def export(self, catalog_id: CatalogId) -> str:
@@ -43,7 +47,7 @@ class RawRestCatalogsApi(RawCatalogsApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def get(self) -> list[dict[Any, Any]]:
+    def list(self) -> list[dict[str, Any]]:
         return self.requester.get_list('connections')
 
 
@@ -82,14 +86,11 @@ class RestCatalogsApi(CatalogsApi, CatalogsApiProvider):
     def raw(self) -> RawCatalogsApi:
         return self.raw_api
 
-    def get(self) -> list[Catalog]:
-        return [c.to_catalog() for c in self.requester.get_connections()]
-
     def export(self, catalog_id: CatalogId) -> str:
-        c = find_by_id(catalog_id, self.requester.get_connections())
+        c = find_by_id(catalog_id, self.list())
         resp = self.requester.get(
             f'inspections/describe/%2Fconnections'
-            f'%2F{self._connection_kind_to_inspection_name(c.connection.kind)}'
+            f'%2F{self._connection_kind_to_inspection_name(c.kind)}'
             f'%2F{c.id}'
         )
 

@@ -15,7 +15,7 @@ def catalogs() -> None:
 @catalogs.command(help='List all catalogs')
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
-    ctx.write(ctx.upsolver_api().catalogs.raw.get())
+    ctx.write(ctx.upsolver_api().catalogs.raw.list())
 
 
 @catalogs.command(help='Export a catalog (connection) as a "CREATE CONNECTION" sql command')
@@ -25,6 +25,6 @@ def export(ctx: CliContext, catalog: str) -> None:
     catalogs_api = ctx.upsolver_api().catalogs
     ctx.write(
         catalogs_api.export(
-            find_by_name_or_id(catalog, catalogs_api.get()).id
+            find_by_name_or_id(catalog, catalogs_api.list()).id
         )
     )

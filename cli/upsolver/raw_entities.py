@@ -1,13 +1,25 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Generic, Optional, TypeVar
 
 from dataclasses_json import config, dataclass_json
 
-# "Raw Entities" are actual entities we get in response from Upsolver's API. They are usually
-# more complex than the entities used in CLI code. Some of the raw entities can be converted
-# to the corresponding CLI entities (e.g. ConnectionInfo is convertible to Catalog).
 from cli.upsolver import entities
-from cli.upsolver.entities import Catalog, Cluster, Job
+from cli.upsolver.entities import ApiEntity, Catalog, Cluster, Job
+
+TApiEntity = TypeVar('TApiEntity', bound='ApiEntity')
+
+
+class RawEntity(Generic[TApiEntity], ABC):
+    """
+     "Raw Entities" are actual entities we get in response from Upsolver's API. They are usually
+      more complex than the entities used in CLI code.
+
+      TApiEntity represents the "higher level" api type that the raw object is mapped to.
+    """
+    @abstractmethod
+    def to_api_entity(self) -> TApiEntity:
+        pass
 
 
 @dataclass_json
@@ -31,14 +43,14 @@ class Connection:
 
 @dataclass_json
 @dataclass
-class ConnectionInfo:
+class ConnectionInfo(RawEntity[Catalog]):
     extra_org_ids: list[str] = field(metadata=config(field_name='extraOrganizationIds'))
     workspaces: list[str]
     connection: Connection
     org_id: str = field(metadata=config(field_name='organizationId'))
     id: str
 
-    def to_catalog(self) -> Catalog:
+    def to_api_entity(self) -> Catalog:
         return Catalog(
             id=self.id,
             name=self.connection.display_data.name,
@@ -59,10 +71,10 @@ class CustomerEnvironment:
 
 @dataclass_json
 @dataclass
-class EnvironmentDashboardResponse:
+class EnvironmentDashboardResponse(RawEntity[Cluster]):
     env: CustomerEnvironment = field(metadata=config(field_name='environment'))
 
-    def to_cluster(self) -> Cluster:
+    def to_api_entity(self) -> Cluster:
         return Cluster(
             name=self.env.display_data.name,
             id=self.env.id,
@@ -84,7 +96,7 @@ class Compression:
 
 @dataclass_json
 @dataclass
-class Table:
+class Table(RawEntity[entities.Table]):
     id: str
     org_id: str = field(metadata=config(field_name='organizationId'))
     display_data: DisplayData = field(metadata=config(field_name='displayData'))
@@ -92,7 +104,7 @@ class Table:
     partitions_columns: list[TableColumn] = field(metadata=config(field_name='partitionColumns'))
     compression: Compression
 
-    def to_table(self) -> entities.Table:
+    def to_api_entity(self) -> entities.Table:
         return entities.Table(
             id=self.id,
             name=self.display_data.name,
@@ -103,12 +115,12 @@ class Table:
 
 @dataclass_json
 @dataclass
-class JobInfo:
+class JobInfo(RawEntity[Job]):
     name: str
     description: str
     status: str
 
-    def to_job(self) -> Job:
+    def to_api_entity(self) -> Job:
         return Job(
             id='',  # JobInfo returned from API has no id...
             name=self.name,
