@@ -30,6 +30,10 @@ class WorksheetsApi(RawWorksheetsApiProvider, ABC):
     def list(self) -> list[Worksheet]:
         return [worksheet.to_api_entity() for worksheet in self.raw.list_worksheets_info()]
 
+    @abstractmethod
+    def get_worksheet(self, identifier: str) -> Worksheet:
+        pass
+
 
 class WorksheetsApiProvider(ABC):
     @property
@@ -58,3 +62,7 @@ class RestWorksheetsApi(WorksheetsApi, WorksheetsApiProvider):
     @property
     def raw(self) -> RawWorksheetsApi:
         return self.raw_api
+
+    def get_worksheet(self, identifier: str) -> Worksheet:
+        ans = self.requester.get(f'worksheets/documents/{identifier}').json()
+        return from_dict(WorksheetView, ans).to_api_entity()

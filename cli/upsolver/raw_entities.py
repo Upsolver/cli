@@ -139,9 +139,11 @@ class WorksheetUri:
 class WorksheetView(RawEntity[Worksheet]):
     uri: str
     title: str = field(metadata=config(field_name='name'))
+    body: Optional[str] = None
 
     def to_api_entity(self) -> Worksheet:
         return Worksheet(
             id=self.uri,  # JobInfo returned from API has no id...
-            title=self.title
+            title=self.title,
+            body=self.body
         )

@@ -15,3 +15,11 @@ def worksheets() -> None:
 @click.pass_obj
 def ls(ctx: CliContext) -> None:
     ctx.write(ctx.upsolver_api().worksheets.list())
+
+
+@worksheets.command(help='Get worksheet')
+@click.pass_obj
+@click.argument('identifier', nargs=1)
+def get(ctx: CliContext,
+        identifier: str) -> None:
+    ctx.write(ctx.upsolver_api().worksheets.get_worksheet(identifier))

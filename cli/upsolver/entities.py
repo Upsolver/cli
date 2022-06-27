@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 from dataclasses_json import dataclass_json
 
@@ -63,6 +63,7 @@ class Job(ApiEntity):
 class Worksheet(ApiEntity):
     id: str
     title: str
+    body: Optional[str] = None
 
 
 ExecutionResult = list[dict[Any, Any]]
