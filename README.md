@@ -101,6 +101,7 @@ poetry run cli/main.py
 ```commandline
 pre-commit install # In potery shell
 ```
+The checks are defined in the file `.pre-commit-config.yaml`
 
 These hooks will run before every commit you make locally. The hooks include static checks like `flake8` (linting) and `mypy` (type checks based on annotations). These check also run as part of the `static-check.yaml` workflow. If you wish, you can run them manually:
 
