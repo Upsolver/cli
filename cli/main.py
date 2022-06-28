@@ -29,9 +29,9 @@ from cli.config import ConfigurationManager
 @click.option('-p', '--profile', default=None,
               help='Commands will be executed using this profile\'s auth token.')
 @click.option('-c', '--config', default=None,
-              help='path and name of the upsql configuration file')
+              help='path and name of the upsql configuration file.')
 @click.option('--debug', is_flag=True, default=False,
-              help='Set logging level to DEBUG and log to stdout')
+              help='Set logging level to DEBUG and log to stdout.')
 def cli(
     ctx: click.Context,
     profile: Optional[str],
