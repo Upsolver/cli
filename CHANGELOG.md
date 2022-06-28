@@ -1,3 +1,8 @@
+# v0.1.7
+## Improvements
+- Minor bug fixes
+- Changed `this` thing
+
 # v0.1.6
 - csv output format now flattens complex objects (object 'a' with nested objected 'b' will show up as "a.b" column).
 - csv output columns are now sorted alphabetically.
