@@ -1,3 +1,6 @@
+# v0.1.8
+- Fixed a bug where executing long statements fails on unexpected error.
+
 # v0.1.7
 ## Improvements
 - Minor bug fixes
