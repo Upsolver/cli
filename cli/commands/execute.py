@@ -21,12 +21,12 @@ from cli.utils import convert_time_str
 @click.option('-s', '--ignore-errors', is_flag=True, default=False,
               help='Ignore errors in query responses. Default behavior is to stop on error.')
 def execute(
-    ctx: CliContext,
-    expression: str,
-    output_format: Optional[str],
-    timeout_sec: float,
-    dry_run: bool,
-    ignore_errors: bool
+        ctx: CliContext,
+        expression: str,
+        output_format: Optional[str],
+        timeout_sec: float,
+        dry_run: bool,
+        ignore_errors: bool
 ) -> None:
     """
     Execute a single SQL query
@@ -37,8 +37,11 @@ def execute(
         expression = click.get_text_stream('stdin').read().strip()
     else:
         p = Path(expression)
-        if p.exists():
-            expression = p.read_text()
+        try:  # In case the path is not valid we don't want the command execution to fail so this try is added
+            if p.exists():
+                expression = p.read_text()
+        except OSError:
+            pass
 
     if len(expression) == 0:
         return
