@@ -1,6 +1,5 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import Any
 
 from dataclasses_json import dataclass_json
 
@@ -58,6 +57,6 @@ class Job(ApiEntity):
     status: str
 
 
-ExecutionResult = list[dict[Any, Any]]
+ExecutionResult = list
 ExecutionErr = Exception
 NextResultPath = str  # results are paged, with "next pointer" being a path of url

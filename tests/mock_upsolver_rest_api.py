@@ -28,7 +28,7 @@ class MockUpsolverRestApi(object):
     }
 
     def __init__(self, requests_mock: RequestsMocker, conf_path: Optional[Path] = None) -> None:
-        self.catalogs: list[Catalog] = []
+        self.catalogs: list = []
 
         if conf_path is not None:
             basic_config = f'''[profile]

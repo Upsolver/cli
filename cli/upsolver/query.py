@@ -17,7 +17,7 @@ class QueryApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def check_syntax(self, expression: str) -> list[str]:
+    def check_syntax(self, expression: str) -> list:
         pass
 
 
@@ -26,7 +26,7 @@ class RestQueryApi(QueryApi):
         self.requester = requester
         self.poller_builder = poller_builder
 
-    def check_syntax(self, expression: str) -> list[str]:
+    def check_syntax(self, expression: str) -> list:
         raise NotImplementedError()
 
     _NextResultPath = str  # results are paged, with "next pointer" being a path of url

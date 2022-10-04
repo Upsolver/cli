@@ -9,7 +9,7 @@ license = "MIT"
 upsolver = "cli.main:main"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 prompt-toolkit = "^3.0.24"
 Pygments = "^2.10.0"
 click = "^8.0.3"
@@ -19,6 +19,7 @@ yarl = "^1.7.2"
 tabulate = "^0.8.9"
 sqlparse = "^0.4.2"
 dataclasses-json = "^0.5.6"
+type-extensions = "^0.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -32,7 +33,6 @@ pytest-mock = "^3.6.1"
 requests-mock = "^1.9.3"
 homebrew-pypi-poet = "^0.10.0"
 toml = "^0.10.2"
-ipython = "^8.1.1"
 
 [tool.isort]
 multi_line_output = 3

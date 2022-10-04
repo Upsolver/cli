@@ -81,7 +81,7 @@ class Options(NamedTuple):
 
 class Config(NamedTuple):
     active_profile: Profile
-    profiles: list[Profile]
+    profiles: list
     options: Optional[Options]
     debug: bool  # user has used the --debug flag
 
@@ -135,7 +135,7 @@ class ConfigurationManager(object):
 
         confparser = ConfigurationManager._get_confparser(path)
 
-        profiles: list[Profile] = list()
+        profiles: list = list()
         for profile_section in [section for section in confparser.sections()
                                 if section.startswith("profile")]:
             section_parts = profile_section.split('.')

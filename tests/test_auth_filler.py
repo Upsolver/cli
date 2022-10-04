@@ -3,7 +3,7 @@ import requests
 
 from cli.upsolver.auth_filler import AuthFiller, CredsAuthFiller, TokenAuthFiller
 
-fillers: list[AuthFiller] = [
+fillers: list = [
     CredsAuthFiller('email', 'password'),
     TokenAuthFiller('token')
 ]

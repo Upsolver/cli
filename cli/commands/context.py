@@ -37,7 +37,7 @@ def init_logging(conf: Config) -> None:
 
     formatter = logging.Formatter('[%(levelname)s] %(asctime)s - %(message)s')
 
-    handlers: list[logging.Handler] = []
+    handlers: list = []
     if conf.options is not None:
         ensure_exists(conf.options.log_file)
         handlers.append(RotatingFileHandler(

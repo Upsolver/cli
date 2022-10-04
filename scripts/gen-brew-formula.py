@@ -28,6 +28,7 @@ def generate_brew_formula(cli_archive_url: str,
                           poetry_lock_path: str,
                           formula_template_path: str,
                           formula_out_path: str) -> None:
+    print(cli_archive_url)
     lock_content = toml.load(poetry_lock_path)
 
     # poet.py:141: PackageNotInstalledWarning: colorama is not installed so we cannot compute

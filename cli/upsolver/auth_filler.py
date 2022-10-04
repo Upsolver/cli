@@ -25,10 +25,10 @@ class CredsAuthFiller(object):
         assert req.headers.get(CredsAuthFiller.EmailHeader) is None
         assert req.headers.get(CredsAuthFiller.PasswordHeader) is None
         filled = copy.deepcopy(req)
-        filled.headers = filled.headers | {
+        filled.headers.update({
             CredsAuthFiller.EmailHeader: self.email,
             CredsAuthFiller.PasswordHeader: self.password
-        }
+        })
         return filled
 
 
@@ -41,5 +41,5 @@ class TokenAuthFiller(object):
     def __call__(self, req: Request) -> Request:
         assert req.headers.get(TokenAuthFiller.TokenHeader) is None
         filled = copy.deepcopy(req)
-        filled.headers = filled.headers | {TokenAuthFiller.TokenHeader: self.token}
+        filled.headers.update({TokenAuthFiller.TokenHeader: self.token})
         return filled

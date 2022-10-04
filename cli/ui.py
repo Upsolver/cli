@@ -12,10 +12,8 @@ from prompt_toolkit.layout.containers import HSplit
 from prompt_toolkit.widgets import Button, Dialog, Frame, Label, RadioList, TextArea
 from tabulate import tabulate
 
-from cli.utils import AnyDataclass
 
-
-def prompt_choose_dialog(title: str, values: list[tuple[Any, str]]) -> Any:
+def prompt_choose_dialog(title: str, values: list) -> Any:
     radio_list = RadioList(values)
 
     def ok_handler() -> None:
@@ -44,8 +42,8 @@ def prompt_choose_dialog(title: str, values: list[tuple[Any, str]]) -> Any:
 
 
 def stats_screen(title: str,
-                 headers: list[str],
-                 get_values: Callable[[], list[AnyDataclass]],
+                 headers: list,
+                 get_values: Callable[[], list],
                  interval_sec: float = 0.5) -> None:
     txt_area = TextArea(read_only=True)
     layout = Layout(container=Frame(

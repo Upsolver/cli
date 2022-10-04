@@ -16,7 +16,7 @@ class LspApi(metaclass=ABCMeta):
     Support for these methods is expected from the upsolver API via the LSP protocol.
     """
     @abstractmethod
-    def get_completions(self, doc: Document) -> list[Completion]:
+    def get_completions(self, doc: Document) -> list:
         pass
 
     @abstractmethod
@@ -28,7 +28,7 @@ class RestLspApi(LspApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def get_completions(self, doc: Document) -> list[Completion]:
+    def get_completions(self, doc: Document) -> list:
         raise NotImplementedErr
 
     def lex_document(self, document: Document) -> Callable[[int], StyleAndTextTuples]:
@@ -36,7 +36,7 @@ class RestLspApi(LspApi):
 
 
 class FakeLspApi(LspApi):
-    _meta_commands: dict[str, str] = {
+    _meta_commands: dict = {
         '!exit': 'Exit from the interactive UpSQL shell',
         '!quit': 'Quit the interactive UpSQL shell',
         '!help': 'Show Help',
@@ -45,7 +45,7 @@ class FakeLspApi(LspApi):
     def __init__(self) -> None:
         self.pyg_lexer = PygmentsLexer(SqlLexer)
 
-    def get_completions(self, doc: Document) -> list[Completion]:
+    def get_completions(self, doc: Document) -> list:
         return [
             Completion(
                 text=match,
