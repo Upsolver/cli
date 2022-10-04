@@ -270,7 +270,7 @@ class EntityNotFound(OperationErr):
     def exit_code() -> ExitCode:
         return ExitCode.EntityNotFound
 
-    def __init__(self, name: str, existing: Optional[list[str]]):
+    def __init__(self, name: str, existing: Optional[list]):
         self.name = name
         self.existing = existing
 

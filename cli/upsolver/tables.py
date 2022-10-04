@@ -1,10 +1,9 @@
 import builtins
 from abc import ABC, abstractmethod
-from typing import Any
 
 from cli import errors
 from cli.upsolver import raw_entities
-from cli.upsolver.entities import Table, TablePartition
+from cli.upsolver.entities import TablePartition
 from cli.upsolver.requester import Requester
 from cli.utils import find_by_id, from_dict
 
@@ -13,10 +12,10 @@ TableId = str
 
 class RawTablesApi(ABC):
     @abstractmethod
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         pass
 
-    def list_tables(self) -> builtins.list[raw_entities.Table]:
+    def list_tables(self) -> builtins.list:
         return [from_dict(raw_entities.Table, t) for t in self.list()]
 
 
@@ -28,7 +27,7 @@ class RawTablesApiProvider(ABC):
 
 
 class TablesApi(RawTablesApiProvider):
-    def list(self) -> list[Table]:
+    def list(self) -> list:
         return [t.to_api_entity() for t in self.raw.list_tables()]
 
     @abstractmethod
@@ -36,7 +35,7 @@ class TablesApi(RawTablesApiProvider):
         pass
 
     @abstractmethod
-    def get_partitions(self, table_id: TableId) -> builtins.list[TablePartition]:
+    def get_partitions(self, table_id: TableId) -> builtins.list:
         pass
 
 
@@ -51,7 +50,7 @@ class RawRestTablesApi(RawTablesApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         return self.requester.get_list('tables')
 
 
@@ -71,7 +70,7 @@ class RestTablesApi(TablesApi, TablesApiProvider):
     def export(self, table_id: TableId) -> str:
         raise errors.NotImplementedErr()
 
-    def get_partitions(self, table_id: TableId) -> list[TablePartition]:
+    def get_partitions(self, table_id: TableId) -> list:
         table = find_by_id(table_id, self.raw.list_tables())
         return [
             TablePartition(

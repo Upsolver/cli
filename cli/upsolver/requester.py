@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 
 from requests import Request, Response, Session
 from yarl import URL
@@ -65,7 +65,7 @@ class Requester(object):
     def _send(self,
               path: str,
               req: Request,
-              json: Optional[dict[Any, Any]] = None) -> UpsolverResponse:
+              json: Optional[dict] = None) -> UpsolverResponse:
         # used to correlate request and response in the logs, at least for now
         req_id = str(uuid.uuid4())
 
@@ -103,15 +103,15 @@ class Requester(object):
     def put(self, path: str) -> UpsolverResponse:
         return self._send(path, Request(method='PUT'))
 
-    def post(self, path: str, json: Optional[dict[str, Any]] = None) -> UpsolverResponse:
+    def post(self, path: str, json: Optional[dict] = None) -> UpsolverResponse:
         payload = json if json is not None else {}
         return self._send(path, Request(method='POST'), payload)
 
-    def patch(self, path: str, json: Optional[dict[str, Any]] = None) -> UpsolverResponse:
+    def patch(self, path: str, json: Optional[dict] = None) -> UpsolverResponse:
         payload = json if json is not None else {}
         return self._send(path, Request(method='PATCH'), payload)
 
-    def get_list(self, path: str, list_field_name: Optional[str] = None) -> list[dict[str, Any]]:
+    def get_list(self, path: str, list_field_name: Optional[str] = None) -> list:
         resp = self.get(path)
 
         def raise_err() -> None:

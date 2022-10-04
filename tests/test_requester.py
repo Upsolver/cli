@@ -11,7 +11,7 @@ from cli.upsolver.requester import Requester, default_resp_validator
 
 # some tests check things that apply to all request methods. Such tests should be
 # parameterized with this list (using @pytest.mark.parameterize).
-requester_methods: list[str] = ['get', 'put', 'post', 'patch']
+requester_methods: list = ['get', 'put', 'post', 'patch']
 
 
 @pytest.mark.parametrize('method', requester_methods)
@@ -34,7 +34,7 @@ def test_path_formatting(requests_mock: RequestsMocker, method: str) -> None:
 @pytest.mark.parametrize('method', requester_methods)
 def test_response_validation(
         requests_mock: RequestsMocker,
-        sc_fail: tuple[int, bool],
+        sc_fail: tuple,
         method: str) -> None:
     r = Requester(
         base_url=URL('http://localhost'),

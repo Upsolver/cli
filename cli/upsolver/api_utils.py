@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Optional
 
 from yarl import URL
 
@@ -23,7 +23,7 @@ def ensure_user_has_curr_org(requester: Requester) -> None:
     user_info = requester.get('/users')
     curr_org = user_info.get('currentOrganization')
     if curr_org is None:
-        orgs: Optional[list[dict[Any, Any]]] = user_info.get('organizations')
+        orgs: Optional[list] = user_info.get('organizations')
         if orgs is None or len(orgs) == 0:
             raise errors.UserHasNoOrgs(email=user_info.get('user.email'))
 

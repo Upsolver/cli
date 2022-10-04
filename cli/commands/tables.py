@@ -25,7 +25,7 @@ def ls(ctx: CliContext) -> None:
 @tables.command(help='Display a live stream of table(s) statistics')
 @click.pass_obj
 @click.argument('tables', nargs=-1)
-def stats(ctx: CliContext, tables: list[str]) -> None:
+def stats(ctx: CliContext, tables: list) -> None:
     tables_api = ctx.upsolver_api().tables
     stats_screen(
         title='Table Stats',

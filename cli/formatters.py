@@ -37,7 +37,7 @@ class OutputFmt(Enum):
 DEFAULT_OUTPUT_FMT = OutputFmt.JSON
 
 
-def to_dict_maybe(o: Any) -> Optional[dict[Any, Any]]:
+def to_dict_maybe(o: Any) -> Optional[dict]:
     if type(o) is dict:
         return o
     elif dataclasses.is_dataclass(o):
@@ -50,7 +50,7 @@ def to_dict_maybe(o: Any) -> Optional[dict[Any, Any]]:
 
 def fmt_json(x: Any) -> str:
     class DataclassesJSONEncoder(JSONEncoder):
-        def default(self, o: Any) -> dict[Any, Any]:
+        def default(self, o: Any) -> dict:
             if dataclasses.is_dataclass(o):
                 return dataclasses.asdict(o)
             return super().default(o)
@@ -66,7 +66,7 @@ def fmt_json(x: Any) -> str:
         return dumps(x)
 
 
-def fmt_any(x: Any, fmt_list: Callable[[list[Any]], str]) -> str:
+def fmt_any(x: Any, fmt_list: Callable[[list], str]) -> str:
     if type(x) is list:
         return fmt_list(x)
     elif type(x) is str:
@@ -75,7 +75,7 @@ def fmt_any(x: Any, fmt_list: Callable[[list[Any]], str]) -> str:
         return fmt_list([x])
 
 
-def to_dict_or_raise(x: Any, desired_fmt: OutputFmt) -> dict[Any, Any]:
+def to_dict_or_raise(x: Any, desired_fmt: OutputFmt) -> dict:
     maybe_dict = to_dict_maybe(x)
     if maybe_dict is None:
         raise errors.FormattingErr(v=x, desired_fmt=desired_fmt.name)
@@ -83,9 +83,9 @@ def to_dict_or_raise(x: Any, desired_fmt: OutputFmt) -> dict[Any, Any]:
 
 
 def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
-    to_dict: Callable[[Any], dict[Any, Any]] = partial(to_dict_or_raise, desired_fmt=OutputFmt.CSV)
+    to_dict: Callable[[Any], dict] = partial(to_dict_or_raise, desired_fmt=OutputFmt.CSV)
 
-    def fmt_list(xs: list[Any]) -> str:
+    def fmt_list(xs: list) -> str:
         if len(xs) == 0:
             return ''
 
@@ -110,10 +110,10 @@ def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
 
 
 def fmt_plain(x: Any) -> str:
-    to_dict: Callable[[Any], dict[Any, Any]] = \
+    to_dict: Callable[[Any], dict] = \
         partial(to_dict_or_raise, desired_fmt=OutputFmt.PLAIN)
 
-    def fmt_list(xs: list[Any]) -> str:
+    def fmt_list(xs: list) -> str:
         if len(xs) == 0:
             return ''
 

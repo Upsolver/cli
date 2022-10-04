@@ -1,9 +1,7 @@
 import builtins
 from abc import ABC, abstractmethod
-from typing import Any
 
 from cli import errors
-from cli.upsolver.entities import Job
 from cli.upsolver.raw_entities import JobInfo
 from cli.upsolver.requester import Requester
 from cli.utils import from_dict
@@ -13,10 +11,10 @@ JobId = str
 
 class RawJobsApi(ABC):
     @abstractmethod
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         pass
 
-    def list_jobs_info(self) -> builtins.list[JobInfo]:
+    def list_jobs_info(self) -> builtins.list:
         return [from_dict(JobInfo, ji) for ji in self.list()]
 
 
@@ -28,7 +26,7 @@ class RawJobsApiProvider(ABC):
 
 
 class JobsApi(RawJobsApiProvider):
-    def list(self) -> list[Job]:
+    def list(self) -> list:
         return [ji.to_api_entity() for ji in self.raw.list_jobs_info()]
 
     @abstractmethod
@@ -47,7 +45,7 @@ class RawRestJobsApi(RawJobsApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         return self.requester.get_list('jobs', list_field_name='jobs')
 
 

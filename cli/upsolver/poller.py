@@ -1,9 +1,9 @@
 import time
-from typing import Any, Callable, Optional
+from typing import Callable, Optional
 
 from cli import errors
 from cli.errors import PayloadErr
-from cli.upsolver.entities import ExecutionResult, NextResultPath
+from cli.upsolver.entities import ExecutionResult
 from cli.upsolver.requester import Requester
 from cli.upsolver.response import UpsolverResponse
 
@@ -22,7 +22,7 @@ outputs:
 """
 ResponsePoller = Callable[
     [Requester, UpsolverResponse],
-    tuple[ExecutionResult, Optional[NextResultPath]]
+    tuple
 ]
 
 
@@ -44,7 +44,7 @@ class SimpleResponsePoller(object):
                            requester: Requester,
                            resp: UpsolverResponse,
                            start_time: float = 0) -> \
-            tuple[ExecutionResult, Optional[NextResultPath]]:
+            tuple:
         """
         :param start_time: time (in seconds since the Epoch) at which polling has started.
         """
@@ -55,12 +55,12 @@ class SimpleResponsePoller(object):
         if int(sc / 100) != 2:
             raise_err()
 
-        def verify_json(j: dict[Any, Any]) -> dict[Any, Any]:
+        def verify_json(j: dict) -> dict:
             if 'status' not in j:
                 raise PayloadErr(resp, 'expected "status" field in response object')
             return j
 
-        def extract_json() -> dict[Any, Any]:
+        def extract_json() -> dict:
             resp_json = resp.json()
             if type(resp_json) is dict:
                 return resp_json
@@ -105,7 +105,7 @@ class SimpleResponsePoller(object):
             return [rjson], None
 
     def __call__(self, requester: Requester, resp: UpsolverResponse) -> \
-            tuple[ExecutionResult, Optional[NextResultPath]]:
+            tuple:
         """
         Waits until result data is ready and returns it (a response may contain actual data, or
         alternatively be a pending response which means we should ask for the results at some

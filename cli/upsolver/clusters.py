@@ -1,8 +1,6 @@
 import builtins
 from abc import ABC, abstractmethod
-from typing import Any
 
-from cli.upsolver.entities import Cluster
 from cli.upsolver.raw_entities import EnvironmentDashboardResponse
 from cli.upsolver.requester import Requester
 from cli.utils import from_dict
@@ -12,10 +10,10 @@ ClusterId = str
 
 class RawClustersApi(ABC):
     @abstractmethod
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         pass
 
-    def list_environments(self) -> builtins.list[EnvironmentDashboardResponse]:
+    def list_environments(self) -> builtins.list:
         return [from_dict(EnvironmentDashboardResponse, e) for e in self.list()]
 
 
@@ -27,7 +25,7 @@ class RawClustersApiProvider(ABC):
 
 
 class ClustersApi(RawClustersApiProvider):
-    def list(self) -> list[Cluster]:
+    def list(self) -> list:
         return [env.to_api_entity() for env in self.raw.list_environments()]
 
     @abstractmethod
@@ -54,7 +52,7 @@ class RawRestClustersApi(RawClustersApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         return self.requester.get_list('environments/dashboard')
 
 

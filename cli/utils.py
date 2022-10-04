@@ -8,14 +8,14 @@ from yarl import URL
 
 from cli import errors
 
-seconds_per_unit: dict[str, float] = {'s': 1.0, 'm': 60.0}
+seconds_per_unit = {'s': 1.0, 'm': 60.0}
 
 
 def convert_to_seconds(s: str) -> float:
     return float(s[:-1]) * seconds_per_unit[s[-1]]
 
 
-def convert_time_str(ctx: click.Context, param: click.Option | click.Parameter, value: Any) -> Any:
+def convert_time_str(ctx: click.Context, param, value: Any) -> Any:
     try:
         return convert_to_seconds(value)
     except Exception:
@@ -61,7 +61,7 @@ def parse_url(url: Optional[str]) -> Optional[URL]:
             return URL('https://' + url)
 
 
-def flatten(d: dict[str, Any], parent: Optional[str] = None, sep: str = '.') -> dict[str, Any]:
+def flatten(d: dict, parent: Optional[str] = None, sep: str = '.') -> dict:
     """
     flatten({'a': {'b': {'c': 1}}, 'd': {'e': [1, 2, 3]}, 'f': 'foo'})
     returns
@@ -72,7 +72,7 @@ def flatten(d: dict[str, Any], parent: Optional[str] = None, sep: str = '.') -> 
     :param sep: separator between concatenated key names
     :return: flattened dictionary
     """
-    items: list[tuple[str, Any]] = []
+    items: list = []
     for k, v in d.items():
         new_key = f'{parent}{sep}{k}' if parent is not None else k
         if type(v) is dict:
@@ -83,7 +83,7 @@ def flatten(d: dict[str, Any], parent: Optional[str] = None, sep: str = '.') -> 
 
 
 class NestedDictAccessor(object):
-    def __init__(self, d: dict[Any, Any]) -> None:
+    def __init__(self, d: dict) -> None:
         self.d = d
 
     def __getitem__(self, item: Any) -> Any:
@@ -103,19 +103,14 @@ class NestedDictAccessor(object):
 
 # Protocol == structural typing support (https://peps.python.org/pep-0544/)
 class AnyDataclass(Protocol):
-    __dataclass_fields__: Dict[Any, Any]
+    __dataclass_fields__: Dict
 
 
 TAnyDataclass = TypeVar('TAnyDataclass', bound=AnyDataclass)
 
 
-def from_dict(tpe: Type[TAnyDataclass], d: dict[str, Any]) -> TAnyDataclass:
-    """
-    mypy complains about
-    "Type[...]" has no attribute "from_dict"
-    when used directly on the type
-    """
-    return getattr(tpe, 'from_dict')(d)
+def from_dict(tpe: Type[TAnyDataclass], d: dict) -> TAnyDataclass:
+    return tpe.from_dict(d)
 
 
 class HasId(Protocol):
@@ -130,7 +125,7 @@ class HasNameAndId(Protocol):
 THasNameAndId = TypeVar('THasNameAndId', bound='HasNameAndId')
 
 
-def find_by_name_or_id(name_or_id: str, ls: list[THasNameAndId]) -> THasNameAndId:
+def find_by_name_or_id(name_or_id: str, ls: list) -> THasNameAndId:
     for x in ls:
         if x.name == name_or_id or x.id == name_or_id:
             return x
@@ -141,7 +136,7 @@ def find_by_name_or_id(name_or_id: str, ls: list[THasNameAndId]) -> THasNameAndI
 THasId = TypeVar('THasId', bound='HasId')
 
 
-def find_by_id(id: str, ls: list[THasId]) -> THasId:
+def find_by_id(id: str, ls: list) -> THasId:
     for x in ls:
         if x.id == id:
             return x

@@ -14,7 +14,7 @@ brew install upsolver-cli
 ```
 
 ### Linux / Windows
-Install using `pip` (Python 3.10+ required):
+Install using `pip` (Python 3.8+ required):
 
 ```commandline
 pip install https://github.com/Upsolver/cli/releases/download/v0.1.0/upsolver-cli.tar.gz --user
@@ -69,12 +69,12 @@ Different profiles can have different API tokens, as well as different API endpo
 ## Development
 
 ### First, Install Python
-Min. required version is 3.10. Here's how to install it using `pyenv` (https://github.com/pyenv/pyenv#installation) on macos:
+Min. required version is 3.8. Here's how to install it using `pyenv` (https://github.com/pyenv/pyenv#installation) on macos:
 
 ```commandline
 brew install pyenv
-pyenv install 3.10.0
-pyenv global 3.10.0
+pyenv install 3.8
+pyenv global 3.8
 ```
 
 ### Install `poetry` and project dependencies

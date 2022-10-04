@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Generic, Optional, TypeVar
+from typing import Generic, List, Optional, TypeVar
 
 from dataclasses_json import config, dataclass_json
 
@@ -44,8 +44,8 @@ class Connection:
 @dataclass_json
 @dataclass
 class ConnectionInfo(RawEntity[Catalog]):
-    extra_org_ids: list[str] = field(metadata=config(field_name='extraOrganizationIds'))
-    workspaces: list[str]
+    extra_org_ids: List = field(metadata=config(field_name='extraOrganizationIds'))
+    workspaces: List
     connection: Connection
     org_id: str = field(metadata=config(field_name='organizationId'))
     id: str
@@ -101,7 +101,7 @@ class Table(RawEntity[entities.Table]):
     org_id: str = field(metadata=config(field_name='organizationId'))
     display_data: DisplayData = field(metadata=config(field_name='displayData'))
     running: bool = field(metadata=config(field_name='isRunning'))
-    partitions_columns: list[TableColumn] = field(metadata=config(field_name='partitionColumns'))
+    partitions_columns: list = field(metadata=config(field_name='partitionColumns'))
     compression: Compression
 
     def to_api_entity(self) -> entities.Table:

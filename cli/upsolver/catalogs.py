@@ -1,9 +1,7 @@
 import builtins
 from abc import ABC, abstractmethod
-from typing import Any
 
 from cli import errors
-from cli.upsolver.entities import Catalog
 from cli.upsolver.raw_entities import ConnectionInfo
 from cli.upsolver.requester import Requester
 from cli.utils import find_by_id, from_dict
@@ -13,10 +11,10 @@ CatalogId = str
 
 class RawCatalogsApi(ABC):
     @abstractmethod
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         pass
 
-    def list_connections_info(self) -> builtins.list[ConnectionInfo]:
+    def list_connections_info(self) -> builtins.list:
         return [from_dict(ConnectionInfo, ci) for ci in self.list()]
 
 
@@ -28,7 +26,7 @@ class RawCatalogsApiProvider(ABC):
 
 
 class CatalogsApi(RawCatalogsApiProvider):
-    def list(self) -> list[Catalog]:
+    def list(self) -> list:
         return [ci.to_api_entity() for ci in self.raw.list_connections_info()]
 
     @abstractmethod
@@ -47,7 +45,7 @@ class RawRestCatalogsApi(RawCatalogsApi):
     def __init__(self, requester: Requester):
         self.requester = requester
 
-    def list(self) -> list[dict[str, Any]]:
+    def list(self) -> list:
         return self.requester.get_list('connections')
 
 

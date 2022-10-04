@@ -9,7 +9,7 @@ class QueryLexer(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def split(self, queries: str) -> list[str]:
+    def split(self, queries: str) -> list:
         """
         splits a string that can potentially contain multiple queries into a list of
         individual queries.
@@ -18,5 +18,5 @@ class QueryLexer(metaclass=ABCMeta):
 
 
 class SimpleQueryLexer(QueryLexer):
-    def split(self, queries: str) -> list[str]:
+    def split(self, queries: str) -> list:
         return [s for s in [s.strip() for s in sqlparse.split(queries)] if s != ';']
