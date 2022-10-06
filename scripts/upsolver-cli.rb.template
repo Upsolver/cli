@@ -8,7 +8,7 @@ class UpsolverCli < Formula
   license "MIT"
 
   depends_on "poetry" => :build
-  depends_on "python@3.6"
+  depends_on "python@3.8"
 
 $resources
 
