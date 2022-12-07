@@ -12,6 +12,8 @@ from cli.utils import convert_time_str
 @click.command()
 @click.pass_obj
 @click.argument('expression')
+@click.option('-c', '--command', is_flag=True, default=False,
+              help='Execute a string sql statement.')
 @click.option('-o', '--output-format', default=None,
               help='The format that the results will be returned in.')
 @click.option('-t', '--timeout', 'timeout_sec', default='10s', callback=convert_time_str,
@@ -23,10 +25,11 @@ from cli.utils import convert_time_str
 def execute(
         ctx: CliContext,
         expression: str,
+        command: bool,
         output_format: Optional[str],
         timeout_sec: float,
         dry_run: bool,
-        ignore_errors: bool
+        ignore_errors: bool,
 ) -> None:
     """
     Execute a single SQL query
@@ -36,12 +39,12 @@ def execute(
     if expression == '-':
         expression = click.get_text_stream('stdin').read().strip()
     else:
-        p = Path(expression)
-        try:  # In case the path is not valid we don't want the command execution to fail so this try is added
+        if not command:
+            p = Path(expression)
             if p.exists():
                 expression = p.read_text()
-        except OSError:
-            pass
+            else:
+                raise ConfigErr("File not found in location: {}".format(expression))
 
     if len(expression) == 0:
         return
