@@ -13,9 +13,9 @@ from cli.utils import convert_time_str
 @click.pass_obj
 @click.argument('expression')
 @click.option('-o', '--output-format', default=None,
-              help='The format that the results will be returned in')
+              help='The format that the results will be returned in.')
 @click.option('-t', '--timeout', 'timeout_sec', default='10s', callback=convert_time_str,
-              help='Timeout setting for pending responses')
+              help='Timeout setting for pending responses.')
 @click.option('-d', '--dry-run', is_flag=True, default=False,
               help='Validate expression is syntactically valid but don\'t run the command.')
 @click.option('-s', '--ignore-errors', is_flag=True, default=False,
