@@ -83,7 +83,7 @@ class Config(NamedTuple):
     active_profile: Profile
     profiles: list
     options: Optional[Options]
-    debug: bool  # user has used the --debug flag
+    verbose: bool  # user has used the --verbose flag
 
 
 def get_home_dir() -> Path:
@@ -117,7 +117,7 @@ class ConfigurationManager(object):
         return confparser
 
     @staticmethod
-    def _parse_conf_file(path: Path, profile: Optional[str], debug: bool) -> Config:
+    def _parse_conf_file(path: Path, profile: Optional[str], verbose: bool) -> Config:
         def get_log_file_path(parser: configparser.ConfigParser) -> Path:
             path_str = parser.get('options', 'log_file', fallback=None)
             if path_str is not None:
@@ -127,7 +127,7 @@ class ConfigurationManager(object):
 
         def get_log_lvl(parser: configparser.ConfigParser) -> LogLvl:
             lvl_str: str = \
-                'DEBUG' if debug else parser.get('options', 'log_level', fallback='')
+                'DEBUG' if verbose else parser.get('options', 'log_level', fallback='')
             if lvl_str != '':
                 return LogLvl[lvl_str]
             else:
@@ -173,12 +173,12 @@ class ConfigurationManager(object):
                 log_file=get_log_file_path(confparser),
                 log_level=get_log_lvl(confparser)
             ),
-            debug=debug
+            verbose=verbose
         )
 
-    def __init__(self, path: Path, profile: Optional[str] = None, debug: bool = False) -> None:
+    def __init__(self, path: Path, profile: Optional[str] = None, verbose: bool = False) -> None:
         self.conf_path = path
-        self.conf = self._parse_conf_file(self.conf_path, profile, debug)
+        self.conf = self._parse_conf_file(self.conf_path, profile, verbose)
 
     def get_formatter(self) -> Formatter:
         return self.conf.active_profile.output.get_formatter()
