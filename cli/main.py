@@ -29,7 +29,7 @@ from cli.config import ConfigurationManager
 @click.option('-p', '--profile', default=None,
               help='Commands will be executed using this profile\'s auth token.')
 @click.option('-c', '--config', default=None,
-              help='path and name of the upsql configuration file.')
+              help='Path and name of the upsql configuration file.')
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help='Set verbose output.')
 def cli(
