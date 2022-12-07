@@ -12,14 +12,9 @@ from yarl import URL
 
 import cli as clipkg
 from cli import errors
-from cli.commands.catalogs import catalogs
-from cli.commands.clusters import clusters
 from cli.commands.configure import configure
 from cli.commands.context import CliContext
 from cli.commands.execute import execute
-from cli.commands.jobs import jobs
-from cli.commands.login import login
-from cli.commands.tables import tables
 from cli.config import ConfigurationManager
 
 
@@ -50,13 +45,13 @@ def cli(
     ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, verbose))
 
 
-cli.add_command(login)
 cli.add_command(configure)
 cli.add_command(execute)
-cli.add_command(clusters)
-cli.add_command(catalogs)
-cli.add_command(tables)
-cli.add_command(jobs)
+# cli.add_command(login)
+# cli.add_command(clusters)
+# cli.add_command(catalogs)
+# cli.add_command(tables)
+# cli.add_command(jobs)
 
 
 def exit_with(code: errors.ExitCode, msg: str) -> None:
