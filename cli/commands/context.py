@@ -86,13 +86,11 @@ class CliContext(object):
 
         return RestAuthApi(auth_base_url)
 
-    def upsolver_api(self) -> UpsolverApi:
-        auth_settings: Optional[ProfileAuthSettings] = \
-            get_auth_settings(self.confman.conf.active_profile)
+    def upsolver_api(self, auth_settings: Optional[ProfileAuthSettings] = None) -> UpsolverApi:
+        auth_settings = auth_settings or get_auth_settings(self.confman.conf.active_profile)
 
         if auth_settings is None:
-            raise ConfigErr('Could not find authentication settings, please use the '
-                            '`login` sub-command to generate them.')
+            raise ConfigErr('Could not find authentication settings.')
 
         return build_upsolver_api(
             requester=Requester(
