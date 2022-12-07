@@ -56,7 +56,7 @@ def test_simple(tmp_path: Path):
         active_profile=default_profile,
         profiles=[default_profile],
         options=Options(ConfigurationManager.CLI_DEFAULT_LOG_PATH, LogLvl.CRITICAL),
-        debug=False,
+        verbose=False,
     )
 
 
@@ -75,7 +75,7 @@ def test_nonexistent_profile_is_ok(tmp_path: Path):
         active_profile=Profile(name='doesntexist', token=None, base_url=None),
         profiles=[default_profile],
         options=Options(ConfigurationManager.CLI_DEFAULT_LOG_PATH, LogLvl.CRITICAL),
-        debug=False,
+        verbose=False,
     )
 
 
@@ -89,7 +89,7 @@ def test_setting_option(tmp_path: Path):
         active_profile=default_profile,
         profiles=[default_profile],
         options=Options(ConfigurationManager.CLI_DEFAULT_LOG_PATH, LogLvl.INFO),
-        debug=False,
+        verbose=False,
     )
 
 
@@ -104,7 +104,7 @@ def test_active_profile(tmp_path: Path):
         active_profile=active_profile,
         profiles=[default_profile, active_profile],
         options=Options(ConfigurationManager.CLI_DEFAULT_LOG_PATH, LogLvl.CRITICAL),
-        debug=False,
+        verbose=False,
     )
 
 
@@ -119,7 +119,7 @@ def test_profile_update(tmp_path: Path):
         active_profile=active_profile,
         profiles=[default_profile, active_profile],
         options=Options(ConfigurationManager.CLI_DEFAULT_LOG_PATH, LogLvl.CRITICAL),
-        debug=False,
+        verbose=False,
     )
 
     new_active_profile = Profile(name='kool', token='stam2', base_url=URL('https://stam2'))
@@ -133,5 +133,5 @@ def test_option_log_file_path():
     pass
 
 
-def test_debug_flag():
+def test_verbose_flag():
     pass

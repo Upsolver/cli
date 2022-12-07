@@ -29,7 +29,7 @@ def init_logging(conf: Config) -> None:
     log = get_logger()
 
     lvl = (
-        LogLvl.DEBUG if conf.debug
+        LogLvl.DEBUG if conf.verbose
         else (conf.options.log_level if conf.options is not None else LogLvl.CRITICAL)
     ).to_logging()
 
@@ -45,8 +45,8 @@ def init_logging(conf: Config) -> None:
             maxBytes=2 * (2 ** 20),
         ))
 
-    # if debug mode, also write to stderr
-    if conf.debug:
+    # if verbose mode, also write to stderr
+    if conf.verbose:
         log.setLevel(logging.DEBUG)
         handlers.append(logging.StreamHandler())
 

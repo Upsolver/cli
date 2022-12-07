@@ -30,13 +30,13 @@ from cli.config import ConfigurationManager
               help='Commands will be executed using this profile\'s auth token.')
 @click.option('-c', '--config', default=None,
               help='path and name of the upsql configuration file.')
-@click.option('--debug', is_flag=True, default=False,
-              help='Set logging level to DEBUG and log to stdout.')
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help='Set verbose output.')
 def cli(
     ctx: click.Context,
     profile: Optional[str],
     config: Optional[str],
-    debug: bool,
+    verbose: bool,
 ) -> None:
     """
     Upsolver CLI
@@ -47,7 +47,7 @@ def cli(
         else Path(os.path.expanduser(config))
     )
 
-    ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, debug))
+    ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, verbose))
 
 
 cli.add_command(login)
@@ -60,7 +60,7 @@ cli.add_command(jobs)
 
 
 def exit_with(code: errors.ExitCode, msg: str) -> None:
-    if '--debug' in sys.argv:
+    if '--verbose' in sys.argv:
         traceback.print_exc()
 
     echo(err=True, message=msg)
