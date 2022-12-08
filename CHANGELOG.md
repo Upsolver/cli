@@ -1,3 +1,13 @@
+# v0.3.0
+- Refactor `configure` and `execute` commands.
+- Remove support from legacy commands.
+
+# v0.2.1
+- Fixed brew formula to also use python 3.8.
+
+# v0.2.0
+- Poetry: Upgrade version.
+
 # v0.1.8
 - Fixed a bug where executing long statements fails on unexpected error.
 
