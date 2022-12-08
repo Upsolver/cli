@@ -22,7 +22,8 @@ from cli.utils import convert_time_str, parse_url
 @click.option('-u', '--api-url', default=None,
               help='URL of Upsolver\'s API. Requires to provide token as well.')
 @click.option('-o', '--output-format', default=None,
-              help='The format that the results will be returned in.')
+              help='The format that the results will be returned in. '
+                   'Supported formats: Json, Csv, Tsv, Plain. Default is Json.')
 @click.option('--timeout', 'timeout_sec', default='10s', callback=convert_time_str,
               help='Timeout setting for pending responses.')
 @click.option('-d', '--dry-run', is_flag=True, default=False,
@@ -50,7 +51,8 @@ def execute(
         try:
             fmt = OutputFmt(output_format.lower()).get_formatter()
         except ValueError:
-            pass
+            raise ConfigErr("Output format {} is not supported. "
+                            "Supported formats: Json, Csv, Tsv, Plain.".format(output_format))
 
     if token and api_url:
         api_url = parse_url(api_url)
