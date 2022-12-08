@@ -24,20 +24,20 @@ You can grab the latest archive link from https://github.com/Upsolver/cli/releas
 
 ## Usage
 
-### Login
-First, you'll need to login:
+### Create Profile
+First, you'll need to create a profile:
+(without the -p flag a default profile will be created)
 ```commandline
-upsolver login
+upsolver -p profile-name configure -t token -u api-url
 ```
 
-By default, this will attempt to use `https://api.upsolver.com` endpoint; if you wish to use a different API endpoint, specify it with:
-
+If you wish to use the local API endpoint, specify it with:
 ```commandline
-upsolver login --base-url https://localhost:8080
+upsolver confgure -u http://localhost:8080
 ```
 
-### Configure
-You can edit `~/.upsolver/config` manually, or use the following command to change configuration interactively:
+### Edit Profile
+You can edit `~/.upsolver/config` manually, or use the following command to change the configuration:
 
 ```commandline
 upsolver configure
