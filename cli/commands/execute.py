@@ -7,7 +7,7 @@ from click import echo
 from cli.commands.context import CliContext
 from cli.config import ProfileAuthSettings
 from cli.errors import ConfigErr
-from cli.formatters import Formatter, OutputFmt
+from cli.formatters import Formatter, get_output_format
 from cli.utils import convert_time_str, parse_url
 
 
@@ -58,13 +58,8 @@ def execute(
     if len(expression) == 0:
         return
 
-    fmt: Optional[Formatter] = None
-    if output_format is not None:
-        try:
-            fmt = OutputFmt(output_format.lower()).get_formatter()
-        except ValueError:
-            raise ConfigErr("Output format {} is not supported. "
-                            "Supported formats: Json, Csv, Tsv, Plain.".format(output_format))
+    output_format = get_output_format(output_format)
+    fmt: Optional[Formatter] = output_format.get_formatter() if output_format else None
 
     if token and api_url:
         api_url = parse_url(api_url)

@@ -123,3 +123,12 @@ def fmt_plain(x: Any) -> str:
         )
 
     return fmt_any(x, fmt_list)
+
+
+def get_output_format(output_format: Optional[str]):
+    if output_format is not None:
+        try:
+            return OutputFmt(output_format.lower())
+        except ValueError:
+            raise errors.ConfigErr("Output format {} is not supported. "
+                                   "Supported formats: Json, Csv, Tsv, Plain.".format(output_format))
