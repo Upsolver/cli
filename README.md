@@ -23,21 +23,29 @@ pip install https://github.com/Upsolver/cli/releases/download/v0.1.0/upsolver-cl
 You can grab the latest archive link from https://github.com/Upsolver/cli/releases
 
 ## Usage
-
-### Login
-First, you'll need to login:
+In order to execute a sql statement you should provide a token and an api-url.
 ```commandline
-upsolver login
+upsolver execute -t token -u api-url -f <path-to-file>
+```
+or:
+```commandline
+upsolver execute -t token -u api-url -c <sql-statement>
+```
+If you don't want to pass the token and the api-url on every command, you can create a profile, and use it with the -p flag.
+
+### Create Profile (optional)
+(without the -p flag a default profile will be created)
+```commandline
+upsolver -p profile-name configure -t token -u api-url
 ```
 
-By default, this will attempt to use `https://api.upsolver.com` endpoint; if you wish to use a different API endpoint, specify it with:
-
+If you wish to use the local API endpoint, specify it with:
 ```commandline
-upsolver login --base-url https://localhost:8080
+upsolver confgure -u http://localhost:8080
 ```
 
-### Configure
-You can edit `~/.upsolver/config` manually, or use the following command to change configuration interactively:
+### Edit Profile
+You can edit `~/.upsolver/config` manually, or use the following command to change the configuration:
 
 ```commandline
 upsolver configure
