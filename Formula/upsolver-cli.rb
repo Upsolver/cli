@@ -3,8 +3,8 @@ class UpsolverCli < Formula
 
   desc "CLI for Upsolver with auto-completion and syntax highlighting"
   homepage "https://upsolver.com/"
-  url "https://github.com/Upsolver/cli/releases/download/v0.2.1/upsolver-cli.tar.gz"
-  sha256 "936f03672d32bcbc2a1c5f022f905fc22a25ff86a62fdf31a3eb5ff5c414cdb4"
+  url "https://github.com/Upsolver/cli/releases/download/v0.3.0/upsolver-cli.tar.gz"
+  sha256 "61954ee2138285f16f6856b3276dae259002aa3b2be7d0ee838d51794cb4a68b"
   license "MIT"
 
   depends_on "poetry" => :build
@@ -96,8 +96,8 @@ class UpsolverCli < Formula
   end
 
   resource "typing-extensions" do
-    url "https://files.pythonhosted.org/packages/9e/1d/d128169ff58c501059330f1ad96ed62b79114a2eb30b8238af63a2e27f70/typing_extensions-4.3.0.tar.gz"
-    sha256 "e6d2677a32f47fc7eb2795db1dd15c1f34eff616bcaf2cfb5e997f854fa1c4a6"
+    url "https://files.pythonhosted.org/packages/e3/a7/8f4e456ef0adac43f452efc2d0e4b242ab831297f1bac60ac815d37eb9cf/typing_extensions-4.4.0.tar.gz"
+    sha256 "1511434bb92bf8dd198c12b1cc812e800d4181cfcb867674e0f8279cc93087aa"
   end
 
   resource "typing-inspect" do
