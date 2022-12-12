@@ -17,7 +17,7 @@ brew install upsolver-cli
 Install using `pip` (Python 3.8+ required):
 
 ```commandline
-pip install https://github.com/Upsolver/cli/releases/download/v0.1.0/upsolver-cli.tar.gz --user
+pip install https://github.com/Upsolver/cli/releases/download/v0.4.0/upsolver-cli.tar.gz
 ```
 
 You can grab the latest archive link from https://github.com/Upsolver/cli/releases
