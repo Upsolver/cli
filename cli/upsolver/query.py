@@ -10,8 +10,7 @@ class QueryApi(metaclass=ABCMeta):
     @abstractmethod
     def execute(self, query: str, timeout_sec: float) -> Iterator[ExecutionResult]:
         """
-        :param query: a singular SQL statement (i.e. multiple statements separated by ';' are not
-        supported by this interface)
+        :param query: a SQL statement
         :return: since queries may result in large responses, they are returned in chunks.
         """
         pass
