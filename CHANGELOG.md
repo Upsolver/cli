@@ -1,3 +1,6 @@
+# v0.4.0
+- Removed the option to execute more than one SQL statement at a time for robustness. It's still possible to execute multiple statements by calling the `upsolver` command multiple times.
+
 # v0.3.0
 - Refactor `configure` and `execute` commands.
 - Remove support from legacy commands.
