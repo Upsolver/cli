@@ -20,7 +20,6 @@ from cli.upsolver.api_builder import build_upsolver_api
 from cli.upsolver.api_utils import get_base_url
 from cli.upsolver.auth import AuthApi, RestAuthApi
 from cli.upsolver.auth_filler import TokenAuthFiller
-from cli.upsolver.lexer import QueryLexer, SimpleQueryLexer
 from cli.upsolver.requester import Requester
 from cli.utils import ensure_exists, get_logger
 
@@ -75,9 +74,6 @@ class CliContext(object):
     def __init__(self, confman: ConfigurationManager):
         self.confman = confman
         init_logging(self.confman.conf)
-
-    def query_lexer(self) -> QueryLexer:
-        return SimpleQueryLexer()
 
     def auth_api(self, auth_base_url: Optional[URL] = None) -> AuthApi:
         if auth_base_url is None:

@@ -65,23 +65,15 @@ def execute(
         else:
             echo("Expression is valid.")
     else:
-        queries = ctx.query_lexer().split(expression)
-        for q in queries:
-            if len(queries) > 1:
-                ctx.write({'marker': 'execution_start', 'query': q})
-
-            try:
-                for res in api.execute(q, timeout_sec):
-                    for res_part in res:
-                        ctx.write(res_part, fmt)
-            except Exception as ex:
-                if not ignore_errors:
-                    raise ex
-                else:
-                    if len(queries) > 1:
-                        ctx.write({'query': q, 'error': str(ex)})
-                    else:
-                        click.echo(str(ex))
+        try:
+            for res in api.execute(expression, timeout_sec):
+                for res_part in res:
+                    ctx.write(res_part, fmt)
+        except Exception as ex:
+            if not ignore_errors:
+                raise ex
+            else:
+                click.echo(str(ex))
 
 
 def __get_expression(file_path: Optional[str], command: Optional[str]) -> str:
