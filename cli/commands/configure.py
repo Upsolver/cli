@@ -11,7 +11,7 @@ from cli.utils import parse_url
 
 @click.command(help='Configure CLI settings. '
                     'In order to create a new profile you should provide a token and an api-url. '
-                    'If you want to name the profile use the -p flag.')
+                    'If you want to name the profile use the -p flag.', no_args_is_help=True)
 @click.pass_obj
 @click.option('-t', '--token', default=None,
               help='Token to use.')

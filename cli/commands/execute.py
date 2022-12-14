@@ -11,7 +11,8 @@ from cli.formatters import Formatter, get_output_format
 from cli.utils import convert_time_str, parse_url
 
 
-@click.command()
+@click.command(help='Execute a single SQL query. '
+                    'Use -f <file_path> or -c <sql_command>.', no_args_is_help=True)
 @click.pass_obj
 @click.option('-f', '--file_path', default=None,
               help='Execute a file.')
@@ -41,9 +42,6 @@ def execute(
         dry_run: bool,
         ignore_errors: bool
 ) -> None:
-    """
-    Execute a single SQL query, using -f <file_path> or -c <sql_command>
-    """
     expression = __get_expression(file_path, command)
 
     output_format = get_output_format(output_format)
