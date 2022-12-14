@@ -22,17 +22,17 @@ from cli.config import ConfigurationManager
 @click.pass_context
 @click.version_option(clipkg.__version__, prog_name='Upsolver CLI')
 @click.option('-p', '--profile', default=None,
-              help='Commands will be executed using this profile\'s auth token.')
+              help='Commands will be executed using this profile\'s auth token. '
+                   'The default profile is named profile.')
 @click.option('-c', '--config', default=None,
-              help='Path and name of the upsql configuration file.')
+              help='Path of the upsolver configuration file. Default is `~/.upsolver/config`.')
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help='Set verbose output.')
 def cli(
-    ctx: click.Context,
-    profile: Optional[str],
-    config: Optional[str],
-    verbose: bool,
-) -> None:
+        ctx: click.Context,
+        profile: Optional[str],
+        config: Optional[str],
+        verbose: bool) -> None:
     """
     Upsolver CLI
     """
