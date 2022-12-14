@@ -1,3 +1,8 @@
+# v0.5.0
+- Display help message when trying a command without arguments.
+- Increase timeout in `execute` command from 10s to 30s.
+- Remove redundant flags in `execute` command: dry-run &  ignore-errors.
+
 # v0.4.0
 - Removed the option to execute more than one SQL statement at a time for robustness. It's still possible to execute multiple statements by calling the `upsolver` command multiple times.
 
