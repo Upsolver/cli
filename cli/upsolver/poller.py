@@ -18,7 +18,7 @@ inputs:
 outputs:
 - ExecutionResult is the result for the initial response given in the inputs
 - an optional NextResultPath that can be queried for further results (e.g. when performing a
-  SELECT the response mayb have multiple parts).
+  SELECT the response maybe have multiple parts).
 """
 ResponsePoller = Callable[
     [Requester, UpsolverResponse],
@@ -36,7 +36,7 @@ ResponsePollerBuilder = Callable[[TimeoutSec], ResponsePoller]
 class SimpleResponsePoller(object):
     def __init__(self,
                  wait_interval_sec: float = 0.1,
-                 max_time_sec: Optional[float] = 10.0):
+                 max_time_sec: Optional[float] = 30.0):
         self.wait_interval_sec = wait_interval_sec
         self.max_time_sec = max_time_sec
 
