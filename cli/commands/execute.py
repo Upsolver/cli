@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from click import echo
 
 from cli.commands.context import CliContext
 from cli.config import ProfileAuthSettings
@@ -27,10 +26,6 @@ from cli.utils import convert_time_str, parse_url
                    'Supported formats: Json, Csv, Tsv, Plain. Default is Json.')
 @click.option('--timeout', 'timeout_sec', default='30s', callback=convert_time_str,
               help='Timeout setting for pending responses. Default is 30s.')
-@click.option('-d', '--dry-run', is_flag=True, default=False,
-              help='Validate expression is syntactically valid but don\'t run the command.')
-@click.option('-s', '--ignore-errors', is_flag=True, default=False,
-              help='Ignore errors in query responses. Default behavior is to stop on error.')
 def execute(
         ctx: CliContext,
         file_path: Optional[str],
@@ -38,10 +33,7 @@ def execute(
         token: Optional[str],
         api_url: Optional[str],
         output_format: Optional[str],
-        timeout_sec: float,
-        dry_run: bool,
-        ignore_errors: bool
-) -> None:
+        timeout_sec: float) -> None:
     expression = __get_expression(file_path, command)
 
     output_format = get_output_format(output_format)
@@ -55,23 +47,9 @@ def execute(
     else:
         api = ctx.upsolver_api()
 
-    if dry_run:
-        check_result = api.check_syntax(expression)
-        if len(check_result) > 0:
-            check_result_txt = "\n".join(check_result)
-            echo(err=True, message=f'found following errors in expression:\n{check_result_txt})')
-        else:
-            echo("Expression is valid.")
-    else:
-        try:
-            for res in api.execute(expression, timeout_sec):
-                for res_part in res:
-                    ctx.write(res_part, fmt)
-        except Exception as ex:
-            if not ignore_errors:
-                raise ex
-            else:
-                click.echo(str(ex))
+    for res in api.execute(expression, timeout_sec):
+        for res_part in res:
+            ctx.write(res_part, fmt)
 
 
 def __get_expression(file_path: Optional[str], command: Optional[str]) -> str:
