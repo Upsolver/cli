@@ -3,6 +3,7 @@ from typing import Optional
 from yarl import URL
 
 from cli import errors
+from cli.errors import ApiUnavailable
 from cli.ui import prompt_choose_dialog
 from cli.upsolver.auth_filler import TokenAuthFiller
 from cli.upsolver.requester import Requester
