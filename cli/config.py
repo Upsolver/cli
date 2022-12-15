@@ -201,8 +201,10 @@ class ConfigurationManager(object):
         confparser = ConfigurationManager._get_confparser(self.conf_path)
         profile_section_name = 'profile' if profile.is_default() else f'profile.{profile.name}'
 
-        if not confparser.has_section(profile_section_name):
-            confparser.add_section(profile_section_name)
+        if confparser.has_section(profile_section_name):
+            confparser.remove_section(profile_section_name)
+
+        confparser.add_section(profile_section_name)
 
         # TODO confparser should handle writing sections that are of NamedTuple type?
         if profile.token:
