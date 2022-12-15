@@ -205,7 +205,8 @@ class ConfigurationManager(object):
 
         # TODO confparser should handle writing sections that are of NamedTuple type?
         confparser.set(section=profile_section_name, option='token', value=profile.token)
-        confparser.set(section=profile_section_name, option='base_url', value=str(profile.base_url))
+        if profile.base_url:
+            confparser.set(section=profile_section_name, option='base_url', value=str(profile.base_url))
         confparser.set(section=profile_section_name, option='output', value=profile.output.name)
 
         with open(self.conf_path, 'w') as conf_file:

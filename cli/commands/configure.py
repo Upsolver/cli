@@ -16,7 +16,8 @@ from cli.utils import parse_url
 @click.option('-t', '--token', default=None,
               help='Token to use.')
 @click.option('-u', '--api-url', default=None,
-              help='URL of Upsolver\'s API.')
+              help='URL of Upsolver\'s API. If not provided, we will try to get it automatically'
+                   ' from the authentication API.')
 @click.option('-o', '--output-format', default=None,
               help='The format that the results will be returned in. '
                    'Supported formats: Json, Csv, Tsv, Plain. Default is Json.')
@@ -31,8 +32,6 @@ def configure(ctx: CliContext,
         raise ConfigErr("Can't create a new profile without a token, please provide it by using -t flag.")
 
     base_url = parse_url(api_url) if api_url else profile.base_url
-    if base_url is None:
-        raise ConfigErr("Can't create a new profile without a api-url, please provide it by using -u flag.")
 
     output = get_output_format(output_format) or profile.output or OutputFmt.JSON
 
