@@ -16,7 +16,7 @@ class ExitCode(Enum):
     NetworkErr = -1
     ApiErr = -2
     ConfigurationErr = -3
-    PrivateApiUnavailable = -4
+    ApiUnavailable = -4
     InvalidOption = -5
 
     UserHasNoOrgs = -100
@@ -240,16 +240,16 @@ class OperationErr(CliErr, metaclass=ABCMeta):
     pass
 
 
-class PrivateApiUnavailable(OperationErr):
+class ApiUnavailable(OperationErr):
     @staticmethod
     def exit_code() -> ExitCode:
-        return ExitCode.PrivateApiUnavailable
+        return ExitCode.ApiUnavailable
 
     def __init__(self, base_url: URL) -> None:
         self.base_url = base_url
 
     def __str__(self) -> str:
-        return f'Failed to retrieve private API address from {self.base_url}'
+        return f'Failed to retrieve API address from {self.base_url}'
 
 
 class UserHasNoOrgs(OperationErr):
