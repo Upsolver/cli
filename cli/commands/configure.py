@@ -26,9 +26,7 @@ def configure(ctx: CliContext,
               output_format: Optional[str]) -> None:
     profile = ctx.confman.conf.active_profile
 
-    token = token or profile.token
-
-    base_url = parse_url(api_url) if api_url else profile.base_url
+    base_url = parse_url(api_url) if api_url else None
 
     output = get_output_format(output_format) if output_format else None
 
