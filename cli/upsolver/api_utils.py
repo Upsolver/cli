@@ -40,7 +40,6 @@ def get_base_url(base_url: URL, token: str) -> URL:
     Retrieve base_url with which further API calls should be made.
     """
     requester = Requester(base_url=base_url, auth_filler=TokenAuthFiller(token))
-    ensure_user_has_curr_org(requester)
 
     resp = requester.get('/environments/local-api')
     dns_name = resp.get('dnsInfo.name')
