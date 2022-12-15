@@ -4,7 +4,6 @@ import click
 
 from cli.commands.context import CliContext
 from cli.config import Profile
-from cli.errors import ConfigErr
 from cli.formatters import OutputFmt, get_output_format
 from cli.utils import parse_url
 
@@ -28,8 +27,6 @@ def configure(ctx: CliContext,
     profile = ctx.confman.conf.active_profile
 
     token = token or profile.token
-    if token is None:
-        raise ConfigErr("Can't create a new profile without a token, please provide it by using -t flag.")
 
     base_url = parse_url(api_url) if api_url else profile.base_url
 
