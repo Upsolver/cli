@@ -8,7 +8,7 @@ from typing import NamedTuple, Optional
 from yarl import URL
 
 from cli.errors import ConfigErr, ConfigReadFail, InternalErr
-from cli.formatters import DEFAULT_OUTPUT_FMT, Formatter, OutputFmt
+from cli.formatters import Formatter, OutputFmt
 from cli.utils import ensure_exists, parse_url
 
 
@@ -23,7 +23,7 @@ class Profile(NamedTuple):
     name: str
     token: Optional[str] = None
     base_url: Optional[URL] = None
-    output: OutputFmt = OutputFmt.JSON
+    output: Optional[OutputFmt] = None
 
     def is_default(self) -> bool:
         return self.name == 'default'
@@ -101,6 +101,7 @@ class ConfigurationManager(object):
     CLI_HOME_DIR: Path = get_home_dir()
     CLI_DEFAULT_LOG_PATH: Path = CLI_HOME_DIR / 'cli.log'
     CLI_DEFAULT_BASE_URL = URL('https://api.upsolver.com')
+    DEFAULT_OUTPUT_FMT = OutputFmt.JSON
 
     conf_path: Path
     conf: Config
@@ -145,10 +146,9 @@ class ConfigurationManager(object):
                                 f'profile section should of the form: [profile.name] '
                                 f'(or [profile] for default profile)')
 
-            output_fmt = DEFAULT_OUTPUT_FMT
-            conf_fmt = confparser.get(profile_section, 'output', fallback=output_fmt.value).lower()
+            conf_fmt = confparser.get(profile_section, 'output', fallback=None)
             try:
-                output_fmt = OutputFmt(conf_fmt)
+                output_fmt = OutputFmt(conf_fmt.lower()) if conf_fmt else None
             except ValueError:
                 raise ConfigErr(f'Invalid output format defined in "{profile_section}": {conf_fmt}')
 
@@ -187,7 +187,8 @@ class ConfigurationManager(object):
         self.conf = self._parse_conf_file(self.conf_path, profile, verbose)
 
     def get_formatter(self) -> Formatter:
-        return self.conf.active_profile.output.get_formatter()
+        fmt = self.conf.active_profile.output or self.DEFAULT_OUTPUT_FMT
+        return fmt.get_formatter()
 
     def update_profile(self, profile: Profile) -> Config:
         """
@@ -208,7 +209,8 @@ class ConfigurationManager(object):
             confparser.set(section=profile_section_name, option='token', value=profile.token)
         if profile.base_url:
             confparser.set(section=profile_section_name, option='base_url', value=str(profile.base_url))
-        confparser.set(section=profile_section_name, option='output', value=profile.output.name)
+        if profile.output:
+            confparser.set(section=profile_section_name, option='output', value=profile.output.name)
 
         with open(self.conf_path, 'w') as conf_file:
             confparser.write(conf_file)

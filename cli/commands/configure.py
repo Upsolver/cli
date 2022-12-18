@@ -4,7 +4,7 @@ import click
 
 from cli.commands.context import CliContext
 from cli.config import Profile
-from cli.formatters import OutputFmt, get_output_format
+from cli.formatters import get_output_format
 from cli.utils import parse_url
 
 
@@ -30,7 +30,7 @@ def configure(ctx: CliContext,
 
     base_url = parse_url(api_url) if api_url else profile.base_url
 
-    output = get_output_format(output_format) or profile.output or OutputFmt.JSON
+    output = get_output_format(output_format) if output_format else None
 
     ctx.confman.update_profile(
         Profile(
