@@ -45,7 +45,6 @@ def get_base_url(base_url: URL, token: str) -> URL:
     resp = requester.get('/environments/local-api')
     dns_name = resp.get('dnsInfo.name')
     if dns_name is None:
-        # raise PrivateApiUnavailable(requester.base_url)
-        return base_url  # default to using the auth endpoint as base url for api requests
+        raise ApiUnavailable(requester.base_url)
 
     return parse_url(dns_name)
