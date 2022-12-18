@@ -34,9 +34,6 @@ class OutputFmt(Enum):
             raise errors.InternalErr(f'Unsupported output format: {self}')
 
 
-DEFAULT_OUTPUT_FMT = OutputFmt.JSON
-
-
 def to_dict_maybe(o: Any) -> Optional[dict]:
     if type(o) is dict:
         return o
