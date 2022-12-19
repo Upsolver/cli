@@ -104,6 +104,7 @@ class ConfigurationManager(object):
 
     conf_path: Path
     conf: Config
+    auth_api_url: URL
 
     @staticmethod
     def _get_confparser(path: Path) -> configparser.ConfigParser:
@@ -176,8 +177,13 @@ class ConfigurationManager(object):
             verbose=verbose
         )
 
-    def __init__(self, path: Path, profile: Optional[str] = None, verbose: bool = False) -> None:
+    def __init__(self, path: Path,
+                 profile: Optional[str] = None,
+                 verbose: bool = False,
+                 auth_api_url: Optional[URL] = None) -> None:
         self.conf_path = path
+        self.auth_api_url = auth_api_url or self.CLI_DEFAULT_BASE_URL
+        assert self.auth_api_url.is_absolute()
         self.conf = self._parse_conf_file(self.conf_path, profile, verbose)
 
     def get_formatter(self) -> Formatter:

@@ -4,10 +4,13 @@ from typing import Optional
 import click
 
 from cli.commands.context import CliContext
-from cli.config import ProfileAuthSettings
-from cli.errors import ConfigErr
+from cli.errors import ApiUnavailable, ConfigErr
 from cli.formatters import Formatter, get_output_format
-from cli.utils import convert_time_str, parse_url
+from cli.upsolver.api_builder import build_upsolver_api
+from cli.upsolver.api_utils import get_base_url
+from cli.upsolver.auth_filler import TokenAuthFiller
+from cli.upsolver.requester import Requester
+from cli.utils import convert_time_str, get_logger
 
 
 @click.command(help='Execute a single SQL query. '
@@ -18,9 +21,10 @@ from cli.utils import convert_time_str, parse_url
 @click.option('-c', '--command', default=None,
               help='Execute a string sql statement.')
 @click.option('-t', '--token', default=None,
-              help='Token to use. Requires to provide api-url as well.')
+              help='Token to use.')
 @click.option('-u', '--api-url', default=None,
-              help='URL of Upsolver\'s API. Requires to provide token as well.')
+              help='URL of Upsolver\'s API. If not provided, we will try to get it automatically from the '
+                   'authentication API.')
 @click.option('-o', '--output-format', default=None,
               help='The format that the results will be returned in. '
                    'Supported formats: Json, Csv, Tsv, Plain. Default is Json.')
@@ -34,20 +38,34 @@ def execute(
         api_url: Optional[str],
         output_format: Optional[str],
         timeout_sec: float) -> None:
+    logger = get_logger('execute')
+
     expression = __get_expression(file_path, command)
 
     output_format = get_output_format(output_format)
     fmt: Optional[Formatter] = output_format.get_formatter() if output_format else None
 
-    if token and api_url:
-        api_url = parse_url(api_url)
-        api = ctx.upsolver_api(ProfileAuthSettings(token, api_url))
-    elif token or api_url:
-        raise ConfigErr("Please provide a token and an api-url.")
-    else:
-        api = ctx.upsolver_api()
+    auth_api_url = ctx.confman.auth_api_url
+    logger.debug(f"Authentication API URL: {auth_api_url}")
 
-    for res in api.execute(expression, timeout_sec):
+    token = token or ctx.confman.conf.active_profile.token
+    if token is None:
+        raise ConfigErr("Please provide a token.")
+    logger.debug(f"Token: {token}")
+
+    api_url = api_url or ctx.confman.conf.active_profile.base_url or get_base_url(auth_api_url, token)
+    if api_url is None:
+        raise ApiUnavailable(auth_api_url)
+    logger.debug(f"API URL: {api_url}")
+
+    upsolver_api = build_upsolver_api(
+        requester=Requester(
+            base_url=api_url,
+            auth_filler=TokenAuthFiller(token)
+        )
+    )
+
+    for res in upsolver_api.execute(expression, timeout_sec):
         for res_part in res:
             ctx.write(res_part, fmt)
 
