@@ -42,7 +42,10 @@ def cli(
         else Path(os.path.expanduser(config))
     )
 
-    ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, verbose))
+    auth_api_url_env_var = os.environ.get('AUTH_API_URL')
+    auth_api_url = URL(auth_api_url_env_var) if auth_api_url_env_var else None
+
+    ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, verbose, auth_api_url))
 
 
 cli.add_command(configure)
