@@ -1,9 +1,6 @@
 # Upsolver CLI
 The Upsolver Command Line Interface.
 
-![example workflow](https://github.com/Upsolver/cli/actions/workflows/run-tests.yaml/badge.svg)
-![example workflow](https://github.com/Upsolver/cli/actions/workflows/static-checks.yaml/badge.svg)
-
 ## Installation
 
 ### MacOS
