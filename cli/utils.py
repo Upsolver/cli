@@ -51,7 +51,8 @@ def parse_url(url: Optional[str]) -> Optional[URL]:
     if url is None:
         return None
 
-    burl = URL(url)
+    # We remove the path since we rely on it being empty when we append other paths in the program
+    burl = URL(url).with_path("")
     if burl.is_absolute():
         return burl
     else:
