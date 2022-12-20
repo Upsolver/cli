@@ -16,6 +16,7 @@ from cli.commands.configure import configure
 from cli.commands.context import CliContext
 from cli.commands.execute import execute
 from cli.config import ConfigurationManager
+from cli.utils import parse_url
 
 
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
@@ -43,7 +44,7 @@ def cli(
     )
 
     auth_api_url_env_var = os.environ.get('AUTH_API_URL')
-    auth_api_url = URL(auth_api_url_env_var) if auth_api_url_env_var else None
+    auth_api_url = parse_url(auth_api_url_env_var) if auth_api_url_env_var else None
 
     ctx.obj = CliContext(confman=ConfigurationManager(conf_path, profile, verbose, auth_api_url))
 

@@ -100,7 +100,7 @@ class ConfigurationManager(object):
 
     CLI_HOME_DIR: Path = get_home_dir()
     CLI_DEFAULT_LOG_PATH: Path = CLI_HOME_DIR / 'cli.log'
-    CLI_DEFAULT_BASE_URL = URL('https://api.upsolver.com')
+    CLI_DEFAULT_BASE_URL = parse_url('https://api.upsolver.com/')
     DEFAULT_OUTPUT_FMT = OutputFmt.JSON
 
     conf_path: Path
