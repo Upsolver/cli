@@ -190,7 +190,7 @@ class ConfigurationManager(object):
         fmt = self.conf.active_profile.output or self.DEFAULT_OUTPUT_FMT
         return fmt.get_formatter()
 
-    def update_profile(self, profile: Profile) -> Config:
+    def update_profile(self, profile: Profile, force: bool = False) -> Config:
         """
         creates/updates configuration of a specific profile.
 
@@ -202,6 +202,9 @@ class ConfigurationManager(object):
         profile_section_name = 'profile' if profile.is_default() else f'profile.{profile.name}'
 
         if confparser.has_section(profile_section_name):
+            if not force:
+                raise ConfigErr(f"Profile '{profile_section_name}' already exists. In order to overwite it"
+                                f" please use the '--force' flag.")
             confparser.remove_section(profile_section_name)
 
         confparser.add_section(profile_section_name)

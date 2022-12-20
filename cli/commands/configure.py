@@ -20,10 +20,13 @@ from cli.utils import parse_url
 @click.option('-o', '--output-format', default=None,
               help='The format that the results will be returned in. '
                    'Supported formats: Json, Csv, Tsv, Plain. Default is Json.')
+@click.option('-f', '--force', is_flag=True, default=False,
+              help='Overwrite profile if already exists.')
 def configure(ctx: CliContext,
               token: Optional[str],
               api_url: Optional[str],
-              output_format: Optional[str]) -> None:
+              output_format: Optional[str],
+              force: bool) -> None:
     profile = ctx.confman.conf.active_profile
 
     base_url = parse_url(api_url) if api_url else None
@@ -35,6 +38,7 @@ def configure(ctx: CliContext,
             name=profile.name,
             token=token,
             base_url=base_url,
-            output=output
-        )
+            output=output,
+        ),
+        force
     )
