@@ -1,3 +1,9 @@
+# 0.6.0
+- Don't allow to run queries on the authentication API, which is not suitable for that.
+- Make all arguments optional on every command.
+- Add AUTH_API_URL environment variable to be able to configure the authentication API URL in different environments.
+- Require --force flag to overwrite an existing profile.
+
 # v0.5.0
 - Display help message when trying a command without arguments.
 - Increase timeout in `execute` command from 10s to 30s.
