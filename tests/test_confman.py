@@ -4,7 +4,7 @@ import pytest
 from yarl import URL
 
 from cli.config import Config, ConfigurationManager, LogLvl, Options, OutputFmt, Profile
-from cli.errors import ConfigReadFail
+from cli.errors import ConfigErr, ConfigReadFail
 
 default_profile = Profile(
     name='default',
@@ -108,7 +108,7 @@ def test_active_profile(tmp_path: Path):
     )
 
 
-def test_profile_update(tmp_path: Path):
+def test_profile_update_without_force(tmp_path: Path):
     conf_path = tmp_path / 'stam.conf'
     with open(conf_path, 'w') as conf_f:
         conf_f.write(basic_config + '''\n[profile.kool]\ntoken=stam\nbase_url=stam''')
@@ -123,7 +123,26 @@ def test_profile_update(tmp_path: Path):
     )
 
     new_active_profile = Profile(name='kool', token='stam2', base_url=URL('https://stam2'))
-    new_conf = confm.update_profile(new_active_profile)
+    with pytest.raises(ConfigErr):
+        confm.update_profile(new_active_profile, False)
+
+
+def test_profile_update_with_force(tmp_path: Path):
+    conf_path = tmp_path / 'stam.conf'
+    with open(conf_path, 'w') as conf_f:
+        conf_f.write(basic_config + '''\n[profile.kool]\ntoken=stam\nbase_url=stam''')
+
+    active_profile = Profile(name='kool', token='stam', base_url=URL('https://stam'))
+    confm = ConfigurationManager(conf_path, profile='kool')
+    assert confm.conf == Config(
+        active_profile=active_profile,
+        profiles=[default_profile, active_profile],
+        options=Options(ConfigurationManager.CLI_DEFAULT_LOG_PATH, LogLvl.CRITICAL),
+        verbose=False,
+    )
+
+    new_active_profile = Profile(name='kool', token='stam2', base_url=URL('https://stam2'))
+    new_conf = confm.update_profile(new_active_profile, True)
     assert new_conf.active_profile == new_active_profile
     assert new_active_profile in new_conf.profiles
 
