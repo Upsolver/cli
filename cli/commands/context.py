@@ -4,23 +4,9 @@ from logging.handlers import RotatingFileHandler
 from typing import Any, Optional
 
 from click import echo
-from yarl import URL
 
-from cli.config import (
-    Config,
-    ConfigurationManager,
-    LogLvl,
-    ProfileAuthSettings,
-    get_auth_settings,
-)
-from cli.errors import ConfigErr
+from cli.config import Config, ConfigurationManager, LogLvl
 from cli.formatters import Formatter
-from cli.upsolver.api import UpsolverApi
-from cli.upsolver.api_builder import build_upsolver_api
-from cli.upsolver.api_utils import get_base_url
-from cli.upsolver.auth import AuthApi, RestAuthApi
-from cli.upsolver.auth_filler import TokenAuthFiller
-from cli.upsolver.requester import Requester
 from cli.utils import ensure_exists, get_logger
 
 
@@ -74,26 +60,6 @@ class CliContext(object):
     def __init__(self, confman: ConfigurationManager):
         self.confman = confman
         init_logging(self.confman.conf)
-
-    def auth_api(self, auth_base_url: Optional[URL] = None) -> AuthApi:
-        if auth_base_url is None:
-            auth_base_url = ConfigurationManager.CLI_DEFAULT_BASE_URL
-        assert auth_base_url.is_absolute()
-
-        return RestAuthApi(auth_base_url)
-
-    def upsolver_api(self, auth_settings: Optional[ProfileAuthSettings] = None) -> UpsolverApi:
-        auth_settings = auth_settings or get_auth_settings(self.confman.conf.active_profile)
-
-        if auth_settings is None:
-            raise ConfigErr('Could not find authentication settings.')
-
-        return build_upsolver_api(
-            requester=Requester(
-                base_url=get_base_url(auth_settings.base_url, auth_settings.token),
-                auth_filler=TokenAuthFiller(auth_settings.token)
-            )
-        )
 
     def write(self, x: Any, fmt: Optional[Formatter] = None) -> None:
         echo(

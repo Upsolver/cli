@@ -1,12 +1,7 @@
 from abc import ABC
 
 from cli.upsolver.auth import AuthApi
-from cli.upsolver.catalogs import CatalogsApiProvider
-from cli.upsolver.clusters import ClustersApiProvider
-from cli.upsolver.jobs import JobsApiProvider
-from cli.upsolver.lsp import LspApi
 from cli.upsolver.query import QueryApi
-from cli.upsolver.tables import TablesApiProvider
 
 """
 General pattern you'll see here:
@@ -63,12 +58,7 @@ the future)
 
 class UpsolverApi(
     AuthApi,
-    ClustersApiProvider,
-    CatalogsApiProvider,
-    JobsApiProvider,
-    TablesApiProvider,
     QueryApi,
-    LspApi,
     ABC
 ):
     pass

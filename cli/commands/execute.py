@@ -6,9 +6,10 @@ import click
 from cli.commands.context import CliContext
 from cli.errors import ApiUnavailable, ConfigErr
 from cli.formatters import Formatter, get_output_format
-from cli.upsolver.api_builder import build_upsolver_api
 from cli.upsolver.api_utils import get_base_url
 from cli.upsolver.auth_filler import TokenAuthFiller
+from cli.upsolver.poller import SimpleResponsePoller
+from cli.upsolver.query import RestQueryApi
 from cli.upsolver.requester import Requester
 from cli.utils import convert_time_str, get_logger
 
@@ -58,11 +59,12 @@ def execute(
         raise ApiUnavailable(auth_api_url)
     logger.debug(f"API URL: {api_url}")
 
-    upsolver_api = build_upsolver_api(
+    upsolver_api = RestQueryApi(
         requester=Requester(
             base_url=api_url,
             auth_filler=TokenAuthFiller(token)
-        )
+        ),
+        poller_builder=lambda to_sec: SimpleResponsePoller(max_time_sec=to_sec)
     )
 
     for res in upsolver_api.execute(expression, timeout_sec):

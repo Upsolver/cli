@@ -3,8 +3,6 @@ from typing import Optional
 
 from requests_mock import Mocker as RequestsMocker
 
-from cli.upsolver.entities import Catalog
-
 DEFAULT_ORG = 'testorg'
 DEFAULT_BASE_URL = 'localhost'
 DEFAULT_TOKEN = 'token123'
@@ -110,32 +108,6 @@ class MockUpsolverRestApi(object):
             }
 
         self.mock.get('/environments/local-api', json=j)
-
-    def add_catalog(self, c: Catalog) -> None:
-        self.catalogs.append(c)
-        self.mock.get(
-            '/connections',
-            json=[
-                {
-                    'id': c.id,
-                    'organizationId': c.org_id,
-                    'extraOrganizationIds': [],
-                    'workspaces': [],
-                    'connection': {
-                        'clazz': c.kind,
-                        'displayData': {
-                            'name': c.name,
-                            'createdBy': c.created_by,
-                            'modifiedBy': 'test',
-                            'modifiedTime': '',
-                            'creationTime': '',
-                            'description': '',
-                        },
-                    },
-                }
-                for c in self.catalogs
-            ]
-        )
 
     def add_user(self, email: str, password: str) -> None:
         """
