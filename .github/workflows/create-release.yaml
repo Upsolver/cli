@@ -80,22 +80,3 @@ jobs:
         run: |
           git commit -am "Release ${{ steps.release-version.outputs.full }}"
           git push origin HEAD:master
-
-      - name: Checkout Samples repo
-        uses: actions/checkout@v2
-        with:
-          repository: Upsolver/Samples
-          ref: master
-          token: ${{ secrets.SAMPLES_ACCEESS_TOKEN }}
-          path: Samples
-
-      - name: Update pip install snippet in Samples repo
-        run: |
-          mkdir -p ./Samples/samples/cli/
-          cd Samples
-          echo "pip install https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver-cli.tar.gz" > ./samples/cli/pip_install.sh
-          git add ./samples/cli/pip_install.sh
-          if [[ `git status --porcelain` ]]; then
-              git commit -m "updated CLI pip installation command"
-              git push origin HEAD:master
-          fi
