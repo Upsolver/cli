@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 jobs:
   create-release:
     name: Create Release
@@ -75,6 +76,14 @@ jobs:
           asset_path: ./dist/upsolver_cli-${{ steps.release-version.outputs.simple }}.tar.gz
           asset_name: upsolver-cli.tar.gz
           asset_content_type: application/tar+gz
+
+      - name: Upload to Pypi
+        id: upload_pyi
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish
 
       - name: Commit updated homebrew formula & version files
         run: |
