@@ -51,7 +51,7 @@ jobs:
 
       - name: Generate homebrew formula
         run: |
-          poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver-cli.tar.gz" --compute-hash-from-file dist/cli-${{ steps.release-version.outputs.simple }}.tar.gz
+          poetry run python scripts/gen-brew-formula.py --cli-archive-url "https://github.com/Upsolver/cli/releases/download/${{ github.ref_name }}/upsolver_cli.tar.gz" --compute-hash-from-file dist/upsolver_cli-${{ steps.release-version.outputs.simple }}.tar.gz
 
       - name: Create Release
         id: create_release
@@ -72,7 +72,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/cli-${{ steps.release-version.outputs.simple }}.tar.gz
+          asset_path: ./dist/upsolver_cli-${{ steps.release-version.outputs.simple }}.tar.gz
           asset_name: upsolver-cli.tar.gz
           asset_content_type: application/tar+gz
 

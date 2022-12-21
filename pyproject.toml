@@ -1,11 +1,14 @@
 [tool.poetry]
-name = "cli"
+name = "upsolver-cli"
 version = "0.6.0"
 description = "Upsolver's CLI"
 authors = ["alexyavo <alex@upsolver.com>"]
 license = "MIT"
 homepage = "https://github.com/upsolver/cli"
 repository = "https://github.com/upsolver/cli"
+packages = [
+    { include = "cli" }
+]
 
 [tool.poetry.scripts]
 upsolver = "cli.main:main"
