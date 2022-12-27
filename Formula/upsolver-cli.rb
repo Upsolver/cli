@@ -3,12 +3,12 @@ class UpsolverCli < Formula
 
   desc "CLI for Upsolver with auto-completion and syntax highlighting"
   homepage "https://upsolver.com/"
-  url "https://github.com/Upsolver/cli/releases/download/v0.6.0/upsolver-cli.tar.gz"
-  sha256 "31de09ae731b162a3450bb3795dc77e94c044835e0092da89a9eaa10719435a2"
+  url "https://github.com/Upsolver/cli/releases/download/v0.6.1/upsolver_cli.tar.gz"
+  sha256 "cb46774a96422db2705f3d902e7b6f909d95f89e26a5da0f2d4461dc3a51f0be"
   license "MIT"
 
   depends_on "poetry" => :build
-  depends_on "python@3.8"
+  depends_on "python@3.10"
 
   resource "certifi" do
     url "https://files.pythonhosted.org/packages/cb/a4/7de7cd59e429bd0ee6521ba58a75adaec136d32f91a761b28a11d8088d44/certifi-2022.9.24.tar.gz"
