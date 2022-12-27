@@ -1,3 +1,6 @@
+# 0.6.2
+- Yet another try to fix the brew formula (link to GitHub release was broken)
+
 # 0.6.1
 - Fixed brew formula to use python 3.10
 
