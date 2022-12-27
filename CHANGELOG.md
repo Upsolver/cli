@@ -1,3 +1,6 @@
+# 0.6.1
+- Fixed brew formula to use python 3.10
+
 # 0.6.0
 - Don't allow to run queries on the authentication API, which is not suitable for that.
 - Make all arguments optional on every command.
