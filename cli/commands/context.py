@@ -63,7 +63,7 @@ class CliContext(object):
 
     def write(self, x: Any, fmt: Optional[Formatter] = None) -> None:
         echo(
-            message=fmt(x) if fmt is not None else self.confman.get_formatter()(x),
+            message=fmt.do_fmt(x) if fmt is not None else self.confman.get_formatter().do_fmt(x),
             file=sys.stdout
         )
 
