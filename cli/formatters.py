@@ -82,7 +82,10 @@ def to_dict_or_raise(x: Any, desired_fmt: OutputFmt) -> dict:
 def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
     to_dict: Callable[[Any], dict] = partial(to_dict_or_raise, desired_fmt=OutputFmt.CSV)
 
+    wroteHeader = False
+
     def fmt_list(xs: list) -> str:
+        nonlocal wroteHeader
         if len(xs) == 0:
             return ''
 
@@ -98,7 +101,12 @@ def fmt_csv(delimiter: str = ',') -> Callable[[Any], str]:
                 restval="<null>"
             )
 
-            w.writeheader()
+            # TODO: Better off spliting the fromatter methods so
+            # that printing the header can be called explicitly once
+            if not wroteHeader:
+                w.writeheader()
+                wroteHeader = True
+
             for x in dicts:
                 w.writerow(x)
             return o.getvalue()
