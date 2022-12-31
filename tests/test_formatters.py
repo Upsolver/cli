@@ -1,6 +1,8 @@
 from cli.formatters import OutputFmt
 
-csv_fmt = OutputFmt.CSV.get_formatter()
+
+def csv_fmt(value):
+    return OutputFmt.CSV.get_formatter()(value)
 
 
 def test_csv_non_uniform_dicts():
