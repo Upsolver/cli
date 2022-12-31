@@ -86,7 +86,6 @@ def to_dict_or_raise(x: Any, desired_fmt: OutputFmt) -> dict:
 class CsvFormatter():
 
     delimiter = ','
-    wroteHeader = False
 
     def withDelimiter(self, delimiter: chr):
         self.delimiter = delimiter
@@ -110,10 +109,7 @@ class CsvFormatter():
                 restval="<null>"
             )
 
-            if not self.wroteHeader:
-                w.writeheader()
-                self.wroteHeader = True
-
+            w.writeheader()
             for x in dicts:
                 w.writerow(x)
             return o.getvalue()
