@@ -1,3 +1,6 @@
+# 0.6.3
+- Fixed CSV output printing the headers more than once
+
 # 0.6.2
 - Yet another try to fix the brew formula (link to GitHub release was broken)
 
