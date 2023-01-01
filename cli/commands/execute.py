@@ -69,7 +69,12 @@ def execute(
 
     for res in upsolver_api.execute(expression, timeout_sec):
         for res_part in res:
-            ctx.write(res_part, fmt)
+            response_kind = res_part.get("kind")
+            if response_kind == "upsolver_query_response":
+                cli_response = res_part.get("message")
+                ctx.write(cli_response, fmt)
+            else:
+                ctx.write(res_part, fmt)
 
 
 def __get_expression(file_path: Optional[str], command: Optional[str]) -> str:
