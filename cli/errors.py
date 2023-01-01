@@ -179,13 +179,21 @@ class ApiErr(RequestErr):
         except JSONDecodeError:
             return self.resp.text
 
+    def _get_error_type_name(self) -> str:
+        if self.resp.status_code == 400:
+            return "Syntax Error"
+        else:
+            return "API Error"
+
     def __str__(self) -> str:
-        req_id_part = f', request_id={self.resp.request_id()}' \
+        req_id_part = f'request_id={self.resp.request_id()}' \
             if self.resp.request_id() is not None \
             else ''
 
-        return f'API Error [status_code={self.resp.status_code}{req_id_part}]: ' \
-               f'{self.detail_message()}'
+        error_type_name = self._get_error_type_name()
+
+        return f'{error_type_name} : ' \
+               f'{self.detail_message()} [{req_id_part}]'
 
 
 class AuthErr(ApiErr):
