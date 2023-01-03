@@ -1,3 +1,8 @@
+# 0.6.4
+- Improve error messages
+- Show simple success message instead of a JSON object
+- Improve "configure" command help message
+
 # 0.6.3
 - Fixed CSV output printing the headers more than once
 
