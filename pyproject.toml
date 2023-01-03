@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "upsolver-cli"
-version = "0.6.3"
+version = "0.6.4"
 description = "Upsolver's CLI"
 authors = ["alexyavo <alex@upsolver.com>"]
 license = "MIT"
