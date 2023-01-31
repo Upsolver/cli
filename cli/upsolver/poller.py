@@ -40,6 +40,18 @@ class SimpleResponsePoller(object):
         self.wait_interval_sec = wait_interval_sec
         self.max_time_sec = max_time_sec
 
+    @staticmethod
+    def _get_result_from_json(rjson):
+        if 'result' in rjson:
+            result = rjson['result']
+            grid = result['grid']  # columns, data, ...
+            column_names = [c['name'] for c in grid['columns']]
+            data_w_columns: ExecutionResult = [dict(zip(column_names, row)) for row in grid['data']]
+
+            return data_w_columns, result.get('next')
+        else:
+            return [rjson], None
+
     def _get_result_helper(self,
                            requester: Requester,
                            resp: UpsolverResponse,
@@ -94,15 +106,7 @@ class SimpleResponsePoller(object):
                 start_time=start_time,
             )
 
-        if 'result' in rjson:
-            result = rjson['result']
-            grid = result['grid']  # columns, data, ...
-            column_names = [c['name'] for c in grid['columns']]
-            data_w_columns: ExecutionResult = [dict(zip(column_names, row)) for row in grid['data']]
-
-            return data_w_columns, result.get('next')
-        else:
-            return [rjson], None
+        return self._get_result_from_json(rjson)
 
     def __call__(self, requester: Requester, resp: UpsolverResponse) -> \
             tuple:
@@ -115,3 +119,17 @@ class SimpleResponsePoller(object):
         be delivered, and can be retrieved using the returned path.
         """
         return self._get_result_helper(requester, resp, start_time=time.time())
+
+
+class DBAPIResponsePoller(SimpleResponsePoller):
+    def __init__(self, *args, **kwargs):
+        SimpleResponsePoller.__init__(self, *args, **kwargs)
+
+    @staticmethod
+    def _get_result_from_json(rjson):
+        if 'result' in rjson:
+            result = rjson['result']
+            result['grid']['has_next_page'] = result.get('next') is not None
+            return result['grid'], result.get('next')
+        else:
+            return rjson, None
